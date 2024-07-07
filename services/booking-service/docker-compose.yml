@@ -1,25 +1,25 @@
 version: '3.8'
 services:
-  user-service:
+  booking-service:
     build: .
     ports:
-      - '3001:3001'
+      - '3002:3002'
     environment:
-      - DATABASE_URL=postgresql://admin:admin@user-db:5432/user_db
+      - DATABASE_URL=postgresql://admin:admin@booking-db:5432/booking_db
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     depends_on:
-      - user-db
+      - booking-db
     networks:
       - services_microservices-network
 
-  user-db:
+  booking-db:
     image: postgres:13
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: user_db
+      POSTGRES_DB: booking_db
     volumes:
-      - user_db_data:/var/lib/postgresql/data
+      - booking_db_data:/var/lib/postgresql/data
     networks:
       - services_microservices-network
 
@@ -28,4 +28,4 @@ networks:
     external: true
 
 volumes:
-  user_db_data:
+  booking_db_data:
