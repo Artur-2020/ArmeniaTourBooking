@@ -2,10 +2,14 @@ version: '3.8'
 services:
   api-gateway:
     build: .
+    volumes:
+      - .:/app
     ports:
-      - '3000:3000'
+      - '${LOCAL_PORT}:${PORT}'
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    env_file:
+      - .env
     networks:
       - services_microservices-network
 

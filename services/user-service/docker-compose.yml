@@ -2,11 +2,13 @@ version: '3.8'
 services:
   user-service:
     build: .
+    volumes:
+      - .:/app
     ports:
-      - '3001:3001'
+      - '${LOCAL_PORT}:${PORT}'
     environment:
-      - DATABASE_URL=postgresql://admin:admin@user-db:5432/user_db
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
     depends_on:
       - user-db
     networks:
@@ -19,7 +21,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: user_db
     volumes:
-      - user_db_data:/var/lib/postgresql/data
+      - ${DB_DATA_URL}:/var/lib/postgresql/data
     networks:
       - services_microservices-network
 

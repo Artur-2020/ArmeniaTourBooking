@@ -2,11 +2,13 @@ version: '3.8'
 services:
   booking-service:
     build: .
+    volumes:
+      - .:/app
     ports:
-      - '3002:3002'
+      - '${LOCAL_PORT}:${PORT}'
     environment:
-      - DATABASE_URL=postgresql://admin:admin@booking-db:5432/booking_db
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
     depends_on:
       - booking-db
     networks:
@@ -19,7 +21,7 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: booking_db
     volumes:
-      - booking_db_data:/var/lib/postgresql/data
+      - ${DB_DATA_URL}:/var/lib/postgresql/data
     networks:
       - services_microservices-network
 
