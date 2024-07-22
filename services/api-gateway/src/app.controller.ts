@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
+import { SignUpDTO } from './dtos';
 
 @Controller()
 export class AppController {
@@ -10,12 +11,7 @@ export class AppController {
   ) {}
 
   @Post('signup')
-  getUsers(@Body() data: { role: string, email: string, password: string }) {
+  getUsers(@Body() data: SignUpDTO) {
     return this.usersClient.send({ cmd: 'sign_up' }, data);
-  }
-
-  @Get('bookings')
-  getBookings() {
-    return this.bookingClient.send({ cmd: 'get_bookings' }, {});
   }
 }
