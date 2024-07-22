@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Inject } from '@nestjs/common';
 
@@ -9,9 +9,9 @@ export class AppController {
     @Inject('BOOKING_SERVICE') private readonly bookingClient: ClientProxy,
   ) {}
 
-  @Get('users')
-  getUsers() {
-    return this.usersClient.send({ cmd: 'get_users' }, {});
+  @Post('signup')
+  getUsers(@Body() data: { role: string, email: string, password: string }) {
+    return this.usersClient.send({ cmd: 'sign_up' }, data);
   }
 
   @Get('bookings')
