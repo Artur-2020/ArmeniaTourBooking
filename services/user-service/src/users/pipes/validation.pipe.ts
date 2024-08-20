@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
+import { RpcException } from "@nestjs/microservices";
 
 @Injectable()
 export class ValidationPipe implements PipeTransform<any> {
@@ -16,8 +17,15 @@ export class ValidationPipe implements PipeTransform<any> {
     const object = plainToInstance(metatype, value);
     const errors = await validate(object);
     if (errors.length > 0) {
-      console.log('errors in pipe ')
-      throw new BadRequestException('Validation failed');
+      const errorMessages = errors.map(err => ({
+        field: err.property,
+        errors: Object.values(err.constraints),
+      }));
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Validation failed',
+        details: errorMessages,
+      });
     }
     return value;
   }

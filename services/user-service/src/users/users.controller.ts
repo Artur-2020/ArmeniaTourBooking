@@ -1,4 +1,5 @@
-import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, UsePipes } from '@nestjs/common';
+import { ValidationPipe } from "./pipes/validation.pipe";
 import { UserService } from './users.service';
 import { SignUpDto } from './dto/signup.dto';
 import { User } from './entities/user.entity';
@@ -10,10 +11,9 @@ export class UserController {
   @MessagePattern({cmd: 'sign_up'})
   async createUser(@Payload() data: SignUpDto): Promise<User> {
     try {
-     return this.userService.signUp(data);
-
+      return await this.userService.signUp(data);
     } catch (error) {
-      throw new RpcException('User creation failed: ' + error.message);
+      throw new RpcException(error.message);
     }
   }
 }

@@ -1,45 +1,43 @@
-import { Injectable } from '@nestjs/common';
-import { UserRepository } from './repsitories/user.repository';
-import { User } from './entities/user.entity';
-import { SignUpDto } from './dto/signup.dto';
-import { RpcException } from "@nestjs/microservices";
+import {Injectable} from '@nestjs/common';
+import {UserRepository} from './repsitories/user.repository';
+import {User} from './entities/user.entity';
+import {SignUpDto} from './dto/signup.dto';
+import {RpcException} from "@nestjs/microservices";
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+    constructor(private readonly userRepository: UserRepository) {
+    }
 
-  async signUp(data: SignUpDto): Promise<User> {
-      try {
+    async signUp(data: SignUpDto): Promise<User> {
         const { email, password, role } = data;
         const user = this.userRepository.create({ email, password, role });
         return this.userRepository.createEntity(user);
-      } catch (error) {
-       throw error;
-      }
-  }
 
-  async getUsers(): Promise<User[]> {
-    return this.userRepository.findAll();
-  }
+    }
 
-  async getUserById(id: string): Promise<User> {
-    return this.userRepository.findById(id);
-  }
+    async getUsers(): Promise<User[]> {
+        return this.userRepository.findAll();
+    }
 
-  async updateUser(
-    id: string,
-    email: string,
-    password: string,
-    role: string,
-  ): Promise<void> {
-    await this.userRepository.updateEntity(id, { email, password, role });
-  }
+    async getUserById(id: string): Promise<User> {
+        return this.userRepository.findById(id);
+    }
 
-  async deleteUser(id: string): Promise<void> {
-    await this.userRepository.deleteEntity(id);
-  }
+    async updateUser(
+        id: string,
+        email: string,
+        password: string,
+        role: string,
+    ): Promise<void> {
+        await this.userRepository.updateEntity(id, {email, password, role});
+    }
 
-  async findUsersByQuery(query: any): Promise<User[]> {
-    return this.userRepository.findByQuery(query);
-  }
+    async deleteUser(id: string): Promise<void> {
+        await this.userRepository.deleteEntity(id);
+    }
+
+    async findUsersByQuery(query: any): Promise<User[]> {
+        return this.userRepository.findByQuery(query);
+    }
 }

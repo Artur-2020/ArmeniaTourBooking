@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Module, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './users/users.module';
@@ -26,6 +26,21 @@ import { ModuleValidationInterceptor } from './users/interceptors/validation';
     {
       provide: APP_INTERCEPTOR,
       useClass: ModuleValidationInterceptor,
+    },
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+        exceptionFactory: (errors) => {
+          const errorMessages = errors.map(err => ({
+            field: err.property,
+            errors: Object.values(err.constraints),
+          }));
+          return new BadRequestException(errorMessages);
+        },
+      }),
     },
 
   ],

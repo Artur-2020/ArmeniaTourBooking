@@ -25,12 +25,12 @@ export class AppController {
         .toPromise();
       return result;
     } catch (error) {
-      console.log('error --->', error);
       // Преобразуем ошибку из микросервиса в HTTP исключение
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          error: error.message || 'Failed to sign up user',
+          message: error.message,
+          details: error.details || [],
         },
         HttpStatus.BAD_REQUEST,
       );
