@@ -1,6 +1,12 @@
-import { Controller, Post, Body } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { Inject } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpException,
+  HttpStatus,
+  Inject,
+} from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices'; // Import Inject from @nestjs/common
 import { SignUpDTO } from './dtos';
 
 @Controller()
@@ -11,7 +17,23 @@ export class AppController {
   ) {}
 
   @Post('signup')
-  getUsers(@Body() data: SignUpDTO) {
-    return this.usersClient.send({ cmd: 'sign_up' }, data);
+  async signUp(@Body() data: SignUpDTO) {
+    try {
+      // Отправляем запрос к пользователю сервису
+      const result = await this.usersClient
+        .send({ cmd: 'sign_up' }, data)
+        .toPromise();
+      return result;
+    } catch (error) {
+      console.log('error --->', error);
+      // Преобразуем ошибку из микросервиса в HTTP исключение
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: error.message || 'Failed to sign up user',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

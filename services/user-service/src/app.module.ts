@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './users/users.module';
 import configuration from './config/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeorm.config';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { ModuleValidationInterceptor } from './users/interceptors/validation';
 
 @Module({
   imports: [
@@ -20,5 +22,12 @@ import { typeOrmConfig } from './config/typeorm.config';
     UserModule,
   ],
   controllers: [AppController],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ModuleValidationInterceptor,
+    },
+
+  ],
 })
 export class AppModule {}

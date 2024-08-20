@@ -2,15 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from './repsitories/user.repository';
 import { User } from './entities/user.entity';
 import { SignUpDto } from './dto/signup.dto';
+import { RpcException } from "@nestjs/microservices";
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
   async signUp(data: SignUpDto): Promise<User> {
-    const { email, password, role } = data;
-    const user = this.userRepository.create({ email, password, role });
-    return this.userRepository.createEntity(user);
+      try {
+        const { email, password, role } = data;
+        const user = this.userRepository.create({ email, password, role });
+        return this.userRepository.createEntity(user);
+      } catch (error) {
+       throw error;
+      }
   }
 
   async getUsers(): Promise<User[]> {
