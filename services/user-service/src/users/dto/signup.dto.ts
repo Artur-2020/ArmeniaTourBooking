@@ -1,20 +1,47 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, Length, Matches } from 'class-validator';
+import { constants } from '../../constants';
+import { Match } from '../decorators/match.decorator';
+import changeConstantValue from '../../helpers/replaceConstantValue';
 
+const {
+  validations: {
+    notEmpty,
+    lengthMsg,
+    invalidItem,
+    passwordDoesNotMatch,
+    passwordMsg,
+  },
+} = constants;
 export class SignUpDto {
-  @IsNotEmpty({ message: 'Email should not be empty' })
-  @IsEmail({}, { message: 'Invalid email address' })
+  @IsNotEmpty({ message: changeConstantValue(notEmpty, { item: 'Email' }) })
+  @IsEmail({}, { message: changeConstantValue(invalidItem, { item: 'Email' }) })
   email: string;
 
-  @IsNotEmpty({ message: 'Role should not be empty' })
+  @IsNotEmpty({ message: changeConstantValue(notEmpty, { item: 'Role' }) })
   role: string;
 
-  @IsNotEmpty({ message: 'Password should not be empty' })
+  @IsNotEmpty({ message: changeConstantValue(notEmpty, { item: 'Password' }) })
+  @Length(8, 20, {
+    message: changeConstantValue(lengthMsg, {
+      item: 'password',
+      max: 20,
+      min: 8,
+    }),
+  })
+  @Matches(/(?=.*\d)(?=.*[a-zA-Z])(?=.*[!@#$%^&*])/, {
+    message: passwordMsg,
+  })
   password: string;
-}
 
-// interfaces/user.interface.ts
-export interface User {
-  id: string;
-  name: string;
-  email: string;
+  @IsNotEmpty({ message: changeConstantValue(notEmpty, { item: 'Password' }) })
+  @Length(8, 20, {
+    message: changeConstantValue(lengthMsg, {
+      item: 'confirm password',
+      max: 20,
+      min: 8,
+    }),
+  })
+  //@ts-ignore
+  @Match('password', { message: passwordDoesNotMatch })
+  confirm_password: string;
 }

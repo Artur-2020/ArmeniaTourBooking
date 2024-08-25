@@ -1,8 +1,8 @@
 import {
   DataSource,
   EntityTarget,
-  FindManyOptions,
   FindOneOptions,
+  FindOptionsWhere,
   Repository,
 } from 'typeorm';
 
@@ -36,7 +36,7 @@ export class BaseRepository<T> extends Repository<T> {
     await this.delete(id);
   }
 
-  async findByQuery(query: FindManyOptions<T>): Promise<T[]> {
-    return this.find(query);
+  async findByQuery(query: Partial<T>): Promise<T[]> {
+    return this.find({ where: query as FindOptionsWhere<T> });
   }
 }

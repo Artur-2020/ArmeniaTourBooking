@@ -34,7 +34,7 @@ import { ModuleValidationInterceptor } from './users/interceptors/validation';
         forbidNonWhitelisted: true,
         transform: true,
         exceptionFactory: (errors) => {
-          const errorMessages = errors.map(err => ({
+          const errorMessages = errors.map((err) => ({
             field: err.property,
             errors: Object.values(err.constraints),
           }));
@@ -42,7 +42,6 @@ import { ModuleValidationInterceptor } from './users/interceptors/validation';
         },
       }),
     },
-
   ],
 })
 export class AppModule {}

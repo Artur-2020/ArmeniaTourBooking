@@ -1,33 +1,28 @@
 import {
-  Controller,
-  Post,
   Body,
+  Controller,
   HttpException,
   HttpStatus,
   Inject,
+  Post,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices'; // Import Inject from @nestjs/common
+import { ClientProxy } from '@nestjs/microservices';
 import { SignUpDTO } from './dtos';
 
 @Controller()
 export class AppController {
   constructor(
     @Inject('USER_SERVICE') private readonly usersClient: ClientProxy,
-    @Inject('BOOKING_SERVICE') private readonly bookingClient: ClientProxy,
   ) {}
 
   @Post('signup')
   async signUp(@Body() data: SignUpDTO) {
     try {
-      // Отправляем запрос к пользователю сервису
-      const result = await this.usersClient
-        .send({ cmd: 'sign_up' }, data)
-        .toPromise();
-      return result;
+      return await this.usersClient.send({ cmd: 'sign_up' }, data).toPromise();
     } catch (error) {
-      // Преобразуем ошибку из микросервиса в HTTP исключение
       throw new HttpException(
         {
+          error: true,
           status: HttpStatus.BAD_REQUEST,
           message: error.message,
           details: error.details || [],
