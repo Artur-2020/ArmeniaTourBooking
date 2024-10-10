@@ -38,6 +38,7 @@ export class UserService {
       role,
     });
 
+    console.log('ttt');
     const accessToken = this.generateAccessToken({
       userId: user.id,
       role,
