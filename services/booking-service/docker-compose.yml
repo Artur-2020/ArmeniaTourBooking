@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  booking-service:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - '${LOCAL_PORT}:${PORT}'
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - booking-db
+    networks:
+      - services_microservices-network
+
+  booking-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: booking_db
+    volumes:
+      - ${DB_DATA_URL}:/var/lib/postgresql/data
+    networks:
+      - services_microservices-network
+
+networks:
+  services_microservices-network:
+    external: true
+
+volumes:
+  booking_db_data:
