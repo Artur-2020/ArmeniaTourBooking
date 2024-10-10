@@ -1,5 +1,6 @@
 import {
   DataSource,
+  DeepPartial,
   EntityTarget,
   FindOneOptions,
   FindOptionsWhere,
@@ -10,8 +11,9 @@ export class BaseRepository<T> extends Repository<T> {
   constructor(target: EntityTarget<T>, dataSource: DataSource) {
     super(target, dataSource.createEntityManager());
   }
-  async createEntity(entity: T): Promise<T> {
-    return this.save(entity);
+  async createEntity(entity: DeepPartial<T>): Promise<T> {
+    const item = this.create(entity);
+    return this.save(item);
   }
 
   async findAll(): Promise<T[]> {
