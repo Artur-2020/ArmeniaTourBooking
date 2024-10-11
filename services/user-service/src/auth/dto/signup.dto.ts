@@ -1,18 +1,11 @@
 import { IsEmail, IsNotEmpty, Length, Matches } from 'class-validator';
-import { constants } from '../../constants';
+import { validations } from '../../constants';
 import { Match } from '../decorators/match.decorator';
 import changeConstantValue from '../../helpers/replaceConstantValue';
 
-const {
-  validations: {
-    notEmpty,
-    lengthMsg,
-    invalidItem,
-    passwordDoesNotMatch,
-    passwordMsg,
-  },
-} = constants;
-export class SignUpDto {
+const { notEmpty, lengthMsg, invalidItem, passwordDoesNotMatch, passwordMsg } =
+  validations;
+export default class SignUpDto {
   @IsNotEmpty({ message: changeConstantValue(notEmpty, { item: 'Email' }) })
   @IsEmail({}, { message: changeConstantValue(invalidItem, { item: 'Email' }) })
   email: string;

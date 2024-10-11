@@ -24,7 +24,7 @@ export class ModuleValidationInterceptor implements NestInterceptor {
       handler,
     )[0] as Type<any>;
 
-    console.log('I am in the interceptor ----->')
+    console.log('I am in the interceptor ----->');
     if (!metatype || !this.toValidate(metatype)) {
       return next.handle();
     }
@@ -33,7 +33,6 @@ export class ModuleValidationInterceptor implements NestInterceptor {
     const errors = await validate(object);
 
     if (errors.length > 0) {
-      console.log('errroorrr in validation ts')
       throw new BadRequestException('Validation failed');
     }
 

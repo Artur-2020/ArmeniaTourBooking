@@ -41,4 +41,7 @@ export class BaseRepository<T> extends Repository<T> {
   async findByQuery(query: Partial<T>): Promise<T[]> {
     return this.find({ where: query as FindOptionsWhere<T> });
   }
+  async findOneByQuery(query: Partial<T>): Promise<T> {
+    return this.findOne({ where: query as FindOptionsWhere<T> });
+  }
 }

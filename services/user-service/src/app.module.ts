@@ -2,6 +2,7 @@ import { BadRequestException, Module, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 import configuration from './config/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeorm.config';
@@ -20,6 +21,7 @@ import { ModuleValidationInterceptor } from './users/interceptors/validation';
       inject: [ConfigService],
     }),
     UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

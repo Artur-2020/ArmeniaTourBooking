@@ -2,8 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException } from '@nestjs/common';
-import { RpcException, BaseRpcExceptionFilter } from '@nestjs/microservices';
+import { BaseRpcExceptionFilter } from '@nestjs/microservices';
 import { ValidationPipe } from './users/pipes/validation.pipe';
 
 async function bootstrap() {

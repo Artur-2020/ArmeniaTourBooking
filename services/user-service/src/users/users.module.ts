@@ -25,6 +25,6 @@ import { ConfigService } from '@nestjs/config';
       useClass: RpcExceptionFilter,
     },
   ],
-  exports: [UserService, JwtService],
+  exports: [UserService, JwtService, UserRepository, ConfigService],
 })
 export class UserModule {}
