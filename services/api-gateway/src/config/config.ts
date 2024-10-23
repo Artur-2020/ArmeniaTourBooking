@@ -1,4 +1,4 @@
 export default () => ({
   rabbitmqUrl: process.env.RABBITMQ_URL,
-  port: process.env.LOCAL_PORT,
+  port: process.env.LOCAL_PORT_API,
 });

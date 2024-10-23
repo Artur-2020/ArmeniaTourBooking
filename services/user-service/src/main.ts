@@ -38,9 +38,12 @@ async function bootstrap() {
   // Start microservices
   await app.startAllMicroservices();
 
+  const port = configService.get<string>('port');
   // Start HTTP server after microservices
-  await app.listen(3000);
-  console.log('Main application and microservice are running');
+  await app.listen(port);
+  console.log(
+    `Main application and microservice are running for user service on port ${port}`,
+  );
 }
 
 bootstrap();

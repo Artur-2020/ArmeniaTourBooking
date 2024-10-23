@@ -2,7 +2,7 @@ import * as process from 'node:process';
 
 export default () => ({
   rabbitmqUrl: process.env.RABBITMQ_URL,
-  port: parseInt(process.env.LOCAL_PORT, 10),
+  port: parseInt(process.env.LOCAL_PORT_USER, 10),
   databaseUrl: process.env.DATABASE_URL,
   dbHost: process.env.DB_HOST,
   dbPort: parseInt(process.env.DB_PORT, 10),

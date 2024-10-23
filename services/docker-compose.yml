@@ -1,5 +1,53 @@
 version: '3.8'
+
 services:
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    volumes:
+      - ./api-gateway:/app
+    env_file:
+      - ./api-gateway/.env
+    ports:
+      - '${LOCAL_PORT_API}:${PORT}'  # Убедитесь, что путь к файлу .env верный
+    depends_on:
+      - rabbitmq
+    networks:
+      - microservices-network
+
+  # User Service
+  user-service:
+    build: ./user-service
+    env_file:
+      - ./user-service/.env
+    volumes:
+      - ./user-service:/app
+    ports:
+      - '${LOCAL_PORT_USER}:${PORT}'
+
+    depends_on:
+      - user-db
+      - rabbitmq
+    networks:
+      - microservices-network
+
+  # User Service DB
+  user-db:
+    image: postgres:13
+    env_file:
+      - ./user-service/.env
+    environment:
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_NAME}"
+    ports:
+      - "${DB_LOCAL_PORT}:${DB_PORT}"
+    volumes:
+      - ./user-service/data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -8,9 +56,15 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - microservices-network
 
 networks:
   microservices-network:
     driver: bridge
+
+volumes:
+  rabbitmq_data:
+  user_db_data:
