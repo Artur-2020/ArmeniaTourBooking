@@ -1,11 +1,8 @@
-# compiled output
+w# compiled output
 /dist
 /node_modules
 /build
-
-# db data
-/data
-
+.env
 # Logs
 logs
 *.log

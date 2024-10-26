@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { UserRepository } from '../users/repsitories/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -7,6 +7,7 @@ import { jwtPayload, signInReturn, signUpReturn } from './interfaces/auth';
 import { services } from '../constants';
 import changeConstantValue from '../helpers/replaceConstantValue';
 import { hash, compare } from '../helpers/hashing';
+import { ClientProxy } from '@nestjs/microservices';
 const { userExistsByEmail, InvalidDataForLogin } = services;
 
 @Injectable()
@@ -15,6 +16,8 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject('NOTIFICATION_SERVICE')
+    private readonly notificationsClient: ClientProxy,
   ) {}
 
   async signUp(data: SignUpDto): Promise<signUpReturn> {
@@ -38,6 +41,11 @@ export class AuthService {
     const { refreshToken, accessToken } = this.generateTokens(user.id, role);
     await this.userRepository.updateEntity(user.id, { refreshToken });
 
+    const notRes = await this.notificationsClient
+      .send({ cmd: 'say' }, data)
+      .toPromise();
+
+    console.log('not res ----------------->', notRes);
     delete user.password;
     return {
       accessToken,

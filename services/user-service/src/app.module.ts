@@ -8,9 +8,32 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeorm.config';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ModuleValidationInterceptor } from './users/interceptors/validation';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { GlobalHttpExceptionFilter } from './exeption-filters/http-exception.filter';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+    }),
+    ClientsModule.registerAsync([
+      {
+        name: 'NOTIFICATION_SERVICE',
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.get<string>('rabbitmqUrl')],
+            queue: 'notification_queue',
+            queueOptions: {
+              durable: false,
+            },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
     ConfigModule.forRoot({
       load: [configuration],
     }),
@@ -43,6 +66,10 @@ import { ModuleValidationInterceptor } from './users/interceptors/validation';
           return new BadRequestException(errorMessages);
         },
       }),
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalHttpExceptionFilter,
     },
   ],
 })

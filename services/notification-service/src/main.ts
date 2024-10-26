@@ -6,7 +6,7 @@ import {
   BaseRpcExceptionFilter,
 } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from './users/pipes/validation.pipe';
+import { ValidationPipe } from './pipes/validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,7 +21,7 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [configService.get<string>('rabbitmqUrl')],
-      queue: 'user_queue',
+      queue: 'notification_queue',
       queueOptions: {
         durable: false,
       },
@@ -45,7 +45,7 @@ async function bootstrap() {
   // Start HTTP server after microservices
   await app.listen(port);
   console.log(
-    `Main application and microservice are running for user service on port ${port}`,
+    `Main application and microservice are running for notifications service on port ${port}`,
   );
 }
 
