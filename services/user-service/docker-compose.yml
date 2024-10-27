@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   user-service:
     build: .
@@ -26,8 +25,6 @@ services:
       - "./data:/var/lib/postgresql/data"
     networks:
       - services_microservices-network
-
-
 networks:
   services_microservices-network:
     external: true

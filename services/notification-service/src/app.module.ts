@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { EmailService } from './email/email.service';
 import { WebsocketService } from './websocket/websocket.service';
+import { EmailController } from './email/email.controller';
 import configuration from './config/config';
 
 @Module({
@@ -14,7 +15,7 @@ import configuration from './config/config';
     }),
     AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, EmailController],
   providers: [AppService, EmailService, WebsocketService],
 })
 export class AppModule {}

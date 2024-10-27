@@ -12,3 +12,9 @@ export interface signInReturn {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface SendVerificationData {
+  to: string;
+  subject: string;
+  text: string;
+}

@@ -3,7 +3,12 @@ import { UserRepository } from '../users/repsitories/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto, SignInDto } from '../auth/dto';
-import { jwtPayload, signInReturn, signUpReturn } from './interfaces/auth';
+import {
+  jwtPayload,
+  SendVerificationData,
+  signInReturn,
+  signUpReturn,
+} from './interfaces/auth';
 import { services } from '../constants';
 import changeConstantValue from '../helpers/replaceConstantValue';
 import { hash, compare } from '../helpers/hashing';
@@ -32,6 +37,16 @@ export class AuthService {
 
     const hashedPassword = await hash(password);
 
+    // TODO uncomment this code for test verification email functionality
+    // const verificationData: SendVerificationData = {
+    //   to: email,
+    //   subject: 'Verification Email',
+    //   text: 'Please verify your account',
+    // };
+    // await this.notificationsClient
+    //   .send({ cmd: 'send_email' }, verificationData)
+    //   .toPromise();
+
     const user = await this.userRepository.createEntity({
       email,
       password: hashedPassword,
@@ -41,11 +56,6 @@ export class AuthService {
     const { refreshToken, accessToken } = this.generateTokens(user.id, role);
     await this.userRepository.updateEntity(user.id, { refreshToken });
 
-    const notRes = await this.notificationsClient
-      .send({ cmd: 'say' }, data)
-      .toPromise();
-
-    console.log('not res ----------------->', notRes);
     delete user.password;
     return {
       accessToken,
