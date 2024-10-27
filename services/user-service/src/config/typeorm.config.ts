@@ -1,6 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { User } from '../users/entities/user.entity'; // Импортируйте ваши сущности
+import { User, Verification } from '../users/entities'; // Импортируйте ваши сущности
 
 export const typeOrmConfig = (
   configService: ConfigService,
@@ -12,6 +12,6 @@ export const typeOrmConfig = (
   password: configService.get<string>('dbPassword'),
   database: configService.get<string>('dbName'),
   url: configService.get<string>('databaseUrl'),
-  entities: [User], // Добавьте все ваши сущности сюда
+  entities: [User, Verification], // Добавьте все ваши сущности сюда
   synchronize: true, // В продакшене рекомендуется установить в false
 });

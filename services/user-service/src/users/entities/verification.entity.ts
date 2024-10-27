@@ -7,24 +7,18 @@ import {
 } from 'typeorm';
 
 @Entity()
-export default class User {
+export default class VerificationEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ unique: true })
+  token: string;
 
-  @Column()
-  role: string;
-
-  @Column({ default: false })
-  active: boolean;
-
-  @Column({ nullable: true }) // Может быть nullable, если refresh token еще не установлен
-  refreshToken: string;
+  @Column({ nullable: true })
+  expiredAt: Date;
 
   @CreateDateColumn({ type: 'timestamptz' }) // Using PostgreSQL's timestamp with time zone
   createdAt: Date;

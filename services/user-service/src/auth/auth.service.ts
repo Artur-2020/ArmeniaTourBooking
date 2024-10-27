@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { UserRepository } from '../users/repsitories/user.repository';
+import { UserRepository, VerificationRepository } from '../users/repsitories';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto, SignInDto } from '../auth/dto';
@@ -19,6 +19,7 @@ const { userExistsByEmail, InvalidDataForLogin } = services;
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly verificationRepository: VerificationRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @Inject('NOTIFICATION_SERVICE')

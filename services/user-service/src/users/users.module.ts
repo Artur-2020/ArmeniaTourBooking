@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserService } from './users.service';
-import { UserRepository } from './repsitories/user.repository';
-import { User } from './entities/user.entity';
+import { UserRepository, VerificationRepository } from './repsitories';
+import { User, Verification } from './entities';
 import { UserController } from './users.controller';
 import { APP_FILTER } from '@nestjs/core';
 import { RpcExceptionFilter } from './exeption-filters/rpc.exeption-filter';
@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Verification]),
     JwtModule.register({}), // Обязательно добавляем JwtModule, если используете JwtService
   ],
   controllers: [UserController],
@@ -20,11 +20,18 @@ import { ConfigService } from '@nestjs/config';
     JwtService,
     UserRepository,
     ConfigService,
+    VerificationRepository,
     {
       provide: APP_FILTER,
       useClass: RpcExceptionFilter,
     },
   ],
-  exports: [UserService, JwtService, UserRepository, ConfigService],
+  exports: [
+    UserService,
+    JwtService,
+    UserRepository,
+    ConfigService,
+    VerificationRepository,
+  ],
 })
 export class UserModule {}

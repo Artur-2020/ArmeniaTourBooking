@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../users/entities/user.entity';
+import { User, Verification } from '../users/entities';
 import { UserModule } from '../users/users.module';
 import { APP_FILTER } from '@nestjs/core';
 import { RpcExceptionFilter } from '../users/exeption-filters/rpc.exeption-filter';
@@ -28,7 +28,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         inject: [ConfigService],
       },
     ]),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Verification]),
     UserModule,
   ],
   controllers: [AuthController],
