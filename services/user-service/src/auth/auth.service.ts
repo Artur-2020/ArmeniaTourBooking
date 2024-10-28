@@ -21,7 +21,7 @@ import { services, validations } from '../constants';
 import changeConstantValue from '../helpers/replaceConstantValue';
 import { hash, compare } from '../helpers/hashing';
 import { ClientProxy } from '@nestjs/microservices';
-const { userExistsByEmail, InvalidDataForLogin } = services;
+const { userExistsByEmail, InvalidDataForLogin, accountNotActive } = services;
 const { invalidItem } = validations;
 @Injectable()
 export class AuthService {
@@ -89,6 +89,9 @@ export class AuthService {
 
     const { password: up, id: userId, role, refreshToken } = user;
 
+    if (!user.activatedAt) {
+      throw new BadRequestException(accountNotActive);
+    }
     const match = await compare(password, up);
 
     if (!match) throw new BadRequestException(InvalidDataForLogin);

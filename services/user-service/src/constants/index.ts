@@ -12,6 +12,7 @@ export const validations = {
 };
 
 export const services = {
+  accountNotActive: 'The user account is not active',
   userExistsByEmail: 'User with the email {email} already exists',
   InvalidDataForLogin: 'Email or password is incorrect',
   notFound: '{item} is not found',
