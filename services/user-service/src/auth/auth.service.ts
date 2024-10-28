@@ -1,20 +1,28 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { UserRepository, VerificationRepository } from '../users/repsitories';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { VerificationRepository } from '../auth/repositories';
+import { UserRepository } from '../users/repsitories';
+import { v4 as uuidv4 } from 'uuid';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto, SignInDto } from '../auth/dto';
 import {
+  IVerification,
   jwtPayload,
   SendVerificationData,
   signInReturn,
   signUpReturn,
 } from './interfaces/auth';
-import { services } from '../constants';
+import { services, validations } from '../constants';
 import changeConstantValue from '../helpers/replaceConstantValue';
 import { hash, compare } from '../helpers/hashing';
 import { ClientProxy } from '@nestjs/microservices';
 const { userExistsByEmail, InvalidDataForLogin } = services;
-
+const { invalidItem } = validations;
 @Injectable()
 export class AuthService {
   constructor(
@@ -38,15 +46,23 @@ export class AuthService {
 
     const hashedPassword = await hash(password);
 
+    const verificationData: IVerification = {
+      email,
+      token: uuidv4(),
+    };
+
+    await this.verificationRepository.createEntity(verificationData);
+
     // TODO uncomment this code for test verification email functionality
-    // const verificationData: SendVerificationData = {
+    // const verificationEmailData: SendVerificationData = {
     //   to: email,
     //   subject: 'Verification Email',
     //   text: 'Please verify your account',
     // };
-    // await this.notificationsClient
-    //   .send({ cmd: 'send_email' }, verificationData)
-    //   .toPromise();
+
+    // Send Verification Email
+
+    // await this.sendVerificationEmail(verificationEmailData);
 
     const user = await this.userRepository.createEntity({
       email,
@@ -55,7 +71,7 @@ export class AuthService {
     });
 
     const { refreshToken, accessToken } = this.generateTokens(user.id, role);
-    await this.userRepository.updateEntity(user.id, { refreshToken });
+    await this.userRepository.updateEntity({ id: user.id }, { refreshToken });
 
     delete user.password;
     return {
@@ -116,5 +132,35 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
+  }
+
+  async sendVerificationEmail(data: SendVerificationData) {
+    await this.notificationsClient
+      .send({ cmd: 'send_email' }, data)
+      .toPromise();
+  }
+
+  async verifyAccount(token?: string) {
+    if (!token) {
+      throw new BadRequestException(
+        changeConstantValue(invalidItem, { item: 'Token' }),
+      );
+    }
+    const existsToken = await this.verificationRepository.findOne({
+      where: { token },
+    });
+
+    if (!existsToken) {
+      throw new BadRequestException(
+        changeConstantValue(invalidItem, { item: 'Token' }),
+      );
+    }
+
+    await this.userRepository.updateEntity(
+      { email: existsToken.email },
+      { activatedAt: new Date() },
+    );
+
+    await this.verificationRepository.deleteEntity(existsToken.id);
   }
 }

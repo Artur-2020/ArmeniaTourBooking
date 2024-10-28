@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Inject,
   Post,
+  Param,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { SignUpDTO, SignInDTO } from './dtos';
@@ -35,6 +37,24 @@ export class AppController {
   async signIn(@Body() data: SignInDTO) {
     try {
       return await this.usersClient.send({ cmd: 'sign_in' }, data).toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+  @Get('verify-account/:token')
+  async verifyAccount(@Param('token') token: string): Promise<string> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'verify_account' }, token)
+        .toPromise();
     } catch (error) {
       throw new HttpException(
         {

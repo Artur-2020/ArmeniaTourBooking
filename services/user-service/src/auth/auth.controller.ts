@@ -1,7 +1,7 @@
 import { Controller, UsePipes } from '@nestjs/common';
 import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { SignInDto, SignUpDto } from '../auth/dto';
-import { signUpReturn, signInReturn } from './interfaces/auth';
+import { signUpReturn, signInReturn, BasicReturnType } from './interfaces/auth';
 import { AuthService } from './auth.service';
 import { ValidationPipe } from '../users/pipes/validation.pipe';
 
@@ -10,7 +10,7 @@ import { ValidationPipe } from '../users/pipes/validation.pipe';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @MessagePattern({ cmd: 'sign_up' })
-  async createUser(@Payload() data: SignUpDto): Promise<signUpReturn> {
+  async signUp(@Payload() data: SignUpDto): Promise<signUpReturn> {
     try {
       return await this.authService.signUp(data);
     } catch (error) {
@@ -22,6 +22,17 @@ export class AuthController {
     try {
       return await this.authService.signIn(data);
     } catch (error) {
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'verify_account' })
+  async verifyAccount(@Payload() token: string): Promise<BasicReturnType> {
+    try {
+      await this.authService.verifyAccount(token);
+      return { success: true };
+    } catch (error) {
+      console.log('error ------------>', error);
       throw new RpcException(error.message);
     }
   }

@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User, Verification } from '../users/entities';
+import { User } from '../users/entities';
+import { Verification } from '../auth/entities';
 import { UserModule } from '../users/users.module';
 import { APP_FILTER } from '@nestjs/core';
 import { RpcExceptionFilter } from '../users/exeption-filters/rpc.exeption-filter';

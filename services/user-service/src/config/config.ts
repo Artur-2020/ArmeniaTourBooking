@@ -14,4 +14,5 @@ export default () => ({
   accessTokenExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
   refreshTokenExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
   salt: parseInt(process.env.salt, 10),
+  forgetPasswordExpiredAt: parseInt(process.env.FORGET_PASSWORD_EXPIRED_AT, 10),
 });

@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { User, Verification } from '../users/entities'; // Импортируйте ваши сущности
-
+import { User } from '../users/entities';
+import { Verification } from '../auth/entities';
 export const typeOrmConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => ({

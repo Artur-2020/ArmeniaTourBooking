@@ -20,8 +20,8 @@ export default class User {
   @Column()
   role: string;
 
-  @Column({ default: false })
-  active: boolean;
+  @Column({ default: null, nullable: true })
+  activatedAt: Date;
 
   @Column({ nullable: true }) // Может быть nullable, если refresh token еще не установлен
   refreshToken: string;

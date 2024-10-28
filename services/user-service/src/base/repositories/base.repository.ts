@@ -24,8 +24,13 @@ export class BaseRepository<T> extends Repository<T> {
     return this.findOne({ where: { id } } as FindOneOptions);
   }
 
-  async updateEntity(id: string, dataToUpdate: Partial<T>): Promise<void> {
-    const entityToUpdate = await this.findById(id);
+  async updateEntity(
+    criteria: FindOptionsWhere<T>,
+    dataToUpdate: Partial<T>,
+  ): Promise<void> {
+    const entityToUpdate = await this.findOne({
+      where: { ...criteria },
+    });
     if (!entityToUpdate) {
       // Handle error if entity not found
       return;

@@ -7,18 +7,15 @@ import {
 } from 'typeorm';
 
 @Entity()
-export default class VerificationEntity {
+export default class Verification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: false })
   email: string;
 
   @Column({ unique: true })
   token: string;
-
-  @Column({ nullable: true })
-  expiredAt: Date;
 
   @CreateDateColumn({ type: 'timestamptz' }) // Using PostgreSQL's timestamp with time zone
   createdAt: Date;
