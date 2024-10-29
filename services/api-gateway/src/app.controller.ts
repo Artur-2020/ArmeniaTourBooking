@@ -49,11 +49,30 @@ export class AppController {
       );
     }
   }
-  @Get('verify-account/:token')
-  async verifyAccount(@Param('token') token: string): Promise<string> {
+  @Post('verify-account')
+  async verifyAccount(@Body('token') token: string): Promise<string> {
     try {
       return await this.usersClient
-        .send({ cmd: 'verify_account' }, token)
+        .send({ cmd: 'verify_account' }, { token })
+        .toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('resend-verify-account-code')
+  async resendVerificationToken(@Body('code') code: string): Promise<string> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'resend_verification_code' }, { code })
         .toPromise();
     } catch (error) {
       throw new HttpException(

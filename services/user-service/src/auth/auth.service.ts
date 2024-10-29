@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { VerificationRepository } from '../auth/repositories';
 import { UserRepository } from '../users/repsitories';
-import { v4 as uuidv4 } from 'uuid';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { SignUpDto, SignInDto } from '../auth/dto';
@@ -21,7 +20,10 @@ import { services, validations } from '../constants';
 import changeConstantValue from '../helpers/replaceConstantValue';
 import { hash, compare } from '../helpers/hashing';
 import { ClientProxy } from '@nestjs/microservices';
-const { userExistsByEmail, InvalidDataForLogin, accountNotActive } = services;
+import { Verification } from './entities';
+import { generateVerificationCode } from '../helpers/generateVerificationCode';
+const { userExistsByEmail, InvalidDataForLogin, accountNotActive, notFound } =
+  services;
 const { invalidItem } = validations;
 @Injectable()
 export class AuthService {
@@ -46,23 +48,18 @@ export class AuthService {
 
     const hashedPassword = await hash(password);
 
+    const code = await this.generateVerificationToken();
+
     const verificationData: IVerification = {
       email,
-      token: uuidv4(),
+      token: code,
     };
 
     await this.verificationRepository.createEntity(verificationData);
 
-    // TODO uncomment this code for test verification email functionality
-    // const verificationEmailData: SendVerificationData = {
-    //   to: email,
-    //   subject: 'Verification Email',
-    //   text: 'Please verify your account',
-    // };
-
     // Send Verification Email
 
-    // await this.sendVerificationEmail(verificationEmailData);
+    await this.sendVerificationEmail({ email, code });
 
     const user = await this.userRepository.createEntity({
       email,
@@ -137,25 +134,32 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async sendVerificationEmail(data: SendVerificationData) {
+  async sendVerificationEmail(data: { email: string; code: string }) {
+    const { code, email } = data;
+    const verificationEmailData: SendVerificationData = {
+      to: email,
+      subject: 'Verification Email',
+      text: `Please verify your account \n Here your code ${code}`,
+    };
     await this.notificationsClient
-      .send({ cmd: 'send_email' }, data)
+      .send({ cmd: 'send_email' }, verificationEmailData)
       .toPromise();
   }
 
   async verifyAccount(token?: string) {
     if (!token) {
       throw new BadRequestException(
-        changeConstantValue(invalidItem, { item: 'Token' }),
+        changeConstantValue(invalidItem, { item: 'Code' }),
       );
     }
-    const existsToken = await this.verificationRepository.findOne({
-      where: { token },
-    });
+    const existsToken = await this.checkVerificationCodeExistsOrNot(
+      token,
+      this.verificationRepository,
+    );
 
     if (!existsToken) {
       throw new BadRequestException(
-        changeConstantValue(invalidItem, { item: 'Token' }),
+        changeConstantValue(invalidItem, { item: 'Code' }),
       );
     }
 
@@ -165,5 +169,54 @@ export class AuthService {
     );
 
     await this.verificationRepository.deleteEntity(existsToken.id);
+  }
+
+  async resendVerificationCode(email: string) {
+    const existsAccount = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!existsAccount) {
+      throw new NotFoundException(
+        changeConstantValue(notFound, {
+          item: 'account with this email address',
+        }),
+      );
+    }
+
+    const newCode = await this.generateVerificationToken();
+
+    await this.verificationRepository.updateEntity(
+      { email },
+      { token: newCode },
+    );
+
+    // Send Verification Email
+
+    await this.sendVerificationEmail({ email, code: newCode });
+  }
+
+  async checkVerificationCodeExistsOrNot(
+    code: string,
+    repository: VerificationRepository,
+  ): Promise<Verification | null> {
+    return await repository.findOne({
+      where: { token: code },
+    });
+  }
+
+  async generateVerificationToken(): Promise<string> {
+    let code: string;
+    let exists: Verification | null;
+
+    do {
+      code = generateVerificationCode();
+      exists = await this.checkVerificationCodeExistsOrNot(
+        code,
+        this.verificationRepository,
+      );
+    } while (exists);
+
+    return code;
   }
 }

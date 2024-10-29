@@ -17,3 +17,9 @@ echo "Stopping services docker-compose.yml..."
 docker-compose -f docker-compose.yml down --remove-orphans
 
 echo "All Docker Compose files are stopped."
+
+
+# Close all open Tilix terminal windows
+echo "Closing all Tilix terminal windows..."
+killall tilix
+echo "All Tilix terminals have been closed."
