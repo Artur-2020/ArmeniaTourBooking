@@ -5,7 +5,7 @@ export default function changeConstantValue(
   let replaceValue = '';
   for (const value in values) {
     replaceValue = '{' + value + '}';
-    string = string.replace(replaceValue, <string>values[value]);
+    string = string.replaceAll(replaceValue, <string>values[value]);
   }
   return string;
 }

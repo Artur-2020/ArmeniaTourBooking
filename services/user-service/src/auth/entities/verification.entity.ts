@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { VerificationEntityType } from '../constants/auth';
 @Entity()
 export default class Verification {
   @PrimaryGeneratedColumn('uuid')
@@ -16,6 +17,18 @@ export default class Verification {
 
   @Column({ unique: true })
   token: string;
+
+  @Column({ enum: VerificationEntityType, nullable: false })
+  type: string;
+
+  @Column({ default: 0 })
+  attemptsCount: number;
+
+  @Column({ default: null })
+  blockedAt: Date;
+
+  @Column({ default: null })
+  expiredAt: Date;
 
   @CreateDateColumn({ type: 'timestamptz' }) // Using PostgreSQL's timestamp with time zone
   createdAt: Date;

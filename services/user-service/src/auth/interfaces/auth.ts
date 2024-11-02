@@ -22,9 +22,18 @@ export interface SendVerificationData {
 export interface IVerification {
   email: string;
   token: string;
+  type: string;
+  expiredAt: Date;
 }
 
-export interface BasicReturnType {
+export interface BasicReturnType<T> {
   success?: boolean;
   error?: boolean;
+  data?: T;
+  message?: string;
+}
+
+export interface ResendCodeDTO {
+  email: string;
+  type: string;
 }

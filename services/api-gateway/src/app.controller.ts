@@ -1,12 +1,10 @@
 import {
   Body,
   Controller,
-  Get,
   HttpException,
   HttpStatus,
   Inject,
   Post,
-  Param,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { SignUpDTO, SignInDTO } from './dtos';
@@ -68,11 +66,50 @@ export class AppController {
     }
   }
 
-  @Post('resend-verify-account-code')
-  async resendVerificationToken(@Body('code') code: string): Promise<string> {
+  @Post('verify-reset-password-code')
+  async verifyResetPasswordCode(
+    @Body('token') token: string,
+  ): Promise<{ success: boolean }> {
     try {
       return await this.usersClient
-        .send({ cmd: 'resend_verification_code' }, { code })
+        .send({ cmd: 'verify_reset_password_code' }, { token })
+        .toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+  @Post('resend-verify-account-code')
+  async resendVerificationToken(@Body('email') email: string): Promise<string> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'resend_verification_code' }, { email })
+        .toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('send-reset-password-code')
+  async sendResetPasswordCode(@Body('email') email: string): Promise<string> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'reset_password_code' }, { email })
         .toPromise();
     } catch (error) {
       throw new HttpException(
