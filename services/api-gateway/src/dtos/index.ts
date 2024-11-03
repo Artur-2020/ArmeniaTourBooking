@@ -7,3 +7,7 @@ export interface SignInDTO {
   email: string;
   password: string;
 }
+
+export interface CreatePasswordDTO extends SignInDTO {
+  confirm_password: string;
+}

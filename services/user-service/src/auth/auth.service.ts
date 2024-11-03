@@ -12,7 +12,7 @@ import {
 import { UserRepository } from '../users/repsitories';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { SignUpDto, SignInDto } from '../auth/dto';
+import { SignUpDto, SignInDto, CreateNewPasswordDto } from '../auth/dto';
 import {
   BasicReturnType,
   IVerification,
@@ -38,6 +38,7 @@ const {
   maximumAttemptsCountReached,
   resendBlocked,
   verificationEmailText,
+  resetPasswordEmailText,
   codeExpiredAt,
 } = services;
 const { invalidItem } = validations;
@@ -168,11 +169,26 @@ export class AuthService {
     const text = changeConstantValue(verificationEmailText, { code, minutes });
     const verificationEmailData: SendVerificationData = {
       to: email,
-      subject: 'Verification Email',
+      subject: 'Account Verification',
       text,
     };
     await this.notificationsClient
       .send({ cmd: 'send_email' }, verificationEmailData)
+      .toPromise();
+  }
+
+  async sendResetPasswordEmail(data: { email: string; code: string }) {
+    const { code, email } = data;
+    const minutes = this.configService.get<string>('resetPasswordExpiredAt');
+
+    const text = changeConstantValue(resetPasswordEmailText, { code, minutes });
+    const resetPasswordEmailData: SendVerificationData = {
+      to: email,
+      subject: 'Reset Password',
+      text,
+    };
+    await this.notificationsClient
+      .send({ cmd: 'send_email' }, resetPasswordEmailData)
       .toPromise();
   }
 
@@ -220,6 +236,8 @@ export class AuthService {
   async verifyResetPasswordCode(
     token?: string,
   ): Promise<BasicReturnType<null>> {
+    const type = VerificationEntityType.RESETPASSWORD;
+
     if (!token) {
       throw new BadRequestException(
         changeConstantValue(invalidItem, { item: 'Code' }),
@@ -227,12 +245,20 @@ export class AuthService {
     }
     const existsToken = await this.checkVerificationCodeExistsOrNot(
       token,
-      VerificationEntityType.RESETPASSWORD,
+      type,
     );
 
     if (!existsToken) {
       throw new BadRequestException(
         changeConstantValue(invalidItem, { item: 'Code' }),
+      );
+    }
+
+    const timeDif = getTimeMinuteDifference(existsToken.expiredAt);
+
+    if (timeDif < 0) {
+      throw new BadRequestException(
+        changeConstantValue(codeExpiredAt, { type }),
       );
     }
 
@@ -264,7 +290,6 @@ export class AuthService {
     const expiredAtMinutes = this.configService.get<string>(expiredAtType);
     const expiredAtDate = new Date();
 
-    console.log('expiredAt minutes ----------->', expiredAtType);
     expiredAtDate.setMinutes(expiredAtDate.getMinutes() + +expiredAtMinutes);
 
     const newCode = await this.generateVerificationToken(type);
@@ -298,7 +323,11 @@ export class AuthService {
 
     // Send Verification Email
 
-    await this.sendVerificationEmail({ email, code: newCode });
+    if (type === VerificationEntityType['VERIFY_ACCOUNT']) {
+      await this.sendVerificationEmail({ email, code: newCode });
+    } else {
+      await this.sendResetPasswordEmail({ email, code: newCode });
+    }
   }
 
   async checkVerificationCodeExistsOrNot(
@@ -370,5 +399,33 @@ export class AuthService {
         }),
       );
     }
+  }
+
+  async createNewPassword(
+    data: CreateNewPasswordDto,
+  ): Promise<BasicReturnType<null>> {
+    const { password, email } = data;
+
+    const existsAccount = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!existsAccount) {
+      throw new NotFoundException(
+        changeConstantValue(invalidItem, {
+          item: 'Email',
+        }),
+      );
+    }
+    const hashedPassword = await hash(password);
+
+    await this.userRepository.updateEntity(
+      {
+        id: existsAccount.id,
+      },
+      { password: hashedPassword },
+    );
+
+    return { success: true };
   }
 }

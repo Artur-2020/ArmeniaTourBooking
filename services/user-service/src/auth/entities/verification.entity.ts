@@ -12,7 +12,7 @@ export default class Verification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true, nullable: false })
+  @Column({ nullable: false })
   email: string;
 
   @Column({ unique: true })

@@ -14,6 +14,8 @@ export const validations = {
 export const services = {
   verificationEmailText:
     '`Please verify your account \n Here your code {code} \n The code will be expired after {minutes} minutes',
+  resetPasswordEmailText:
+    'Here your code {code} for reset your password \n The code will be expired after {minutes} minutes',
   accountNotActive: 'The user account is not active',
   accountIsActive: 'The user account is already active',
   userExistsByEmail: 'User with the email {email} already exists',

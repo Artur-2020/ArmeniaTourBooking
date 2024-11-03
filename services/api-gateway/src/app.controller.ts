@@ -4,10 +4,11 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { SignUpDTO, SignInDTO } from './dtos';
+import { SignUpDTO, SignInDTO, CreatePasswordDTO } from './dtos';
 
 @Controller()
 export class AppController {
@@ -106,10 +107,31 @@ export class AppController {
   }
 
   @Post('send-reset-password-code')
-  async sendResetPasswordCode(@Body('email') email: string): Promise<string> {
+  async sendResetPasswordCode(
+    @Body('email') email: string,
+  ): Promise<{ success: boolean }> {
     try {
       return await this.usersClient
         .send({ cmd: 'reset_password_code' }, { email })
+        .toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Patch('create-new-password')
+  async createNewPassword(@Body() data: CreatePasswordDTO): Promise<boolean> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'create_new_password' }, data)
         .toPromise();
     } catch (error) {
       throw new HttpException(

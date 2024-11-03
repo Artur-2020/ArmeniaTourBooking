@@ -5,6 +5,7 @@ import {
   SignUpDto,
   ResendVerificationDto,
   VerifyAccountDto,
+  CreateNewPasswordDto,
 } from '../auth/dto';
 import { signUpReturn, signInReturn, BasicReturnType } from './interfaces/auth';
 import { AuthService } from './auth.service';
@@ -82,6 +83,18 @@ export class AuthController {
       const { token } = data;
       await this.authService.verifyResetPasswordCode(token);
       return { success: true };
+    } catch (error) {
+      console.log('error ------------>', error);
+      throw new RpcException(error.message);
+    }
+  }
+
+  @MessagePattern({ cmd: 'create_new_password' })
+  async createNewPassword(
+    @Payload() data: CreateNewPasswordDto,
+  ): Promise<BasicReturnType<null>> {
+    try {
+      return await this.authService.createNewPassword(data);
     } catch (error) {
       console.log('error ------------>', error);
       throw new RpcException(error.message);
