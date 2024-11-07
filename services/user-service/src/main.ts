@@ -1,24 +1,51 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import {
+  Transport,
+  MicroserviceOptions,
+  BaseRpcExceptionFilter,
+} from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from './users/pipes/validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.connectMicroservice<MicroserviceOptions>({
+  const configService = app.get(ConfigService);
+
+  // Global ValidationPipe for HTTP server
+  app.useGlobalPipes(new ValidationPipe());
+
+  // Microservice options for RabbitMQ
+  const microserviceOptions: MicroserviceOptions = {
     transport: Transport.RMQ,
     options: {
-      urls: [process.env.RABBITMQ_URL],
+      urls: [configService.get<string>('rabbitmqUrl')],
       queue: 'user_queue',
       queueOptions: {
         durable: false,
       },
     },
-  });
+  };
 
+  // Connect microservice
+  const microserviceApp =
+    app.connectMicroservice<MicroserviceOptions>(microserviceOptions);
+
+  // Global ValidationPipe for microservice
+  microserviceApp.useGlobalPipes(new ValidationPipe());
+
+  // Global filter for handling RPC exceptions
+  microserviceApp.useGlobalFilters(new BaseRpcExceptionFilter());
+
+  // Start microservices
   await app.startAllMicroservices();
-  await app.listen(3000, () =>
-    console.log('User Service is listening at port 3000'),
+
+  const port = configService.get<string>('port');
+  // Start HTTP server after microservices
+  await app.listen(port);
+  console.log(
+    `Main application and microservice are running for user service on port ${port}`,
   );
 }
 
