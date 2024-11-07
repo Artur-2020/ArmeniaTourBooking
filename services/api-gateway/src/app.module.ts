@@ -3,6 +3,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/config';
+import { GlobalHttpExceptionFilter } from './exeption-filters/http-exception.filter';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -43,6 +45,12 @@ import configuration from './config/config';
         inject: [ConfigService],
       },
     ]),
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GlobalHttpExceptionFilter,
+    },
   ],
   controllers: [AppController],
 })
