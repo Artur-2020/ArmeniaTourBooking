@@ -9,6 +9,12 @@ import { RpcExceptionFilter } from '../users/exeption-filters/rpc.exeption-filte
 import { AuthService } from './auth.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ResetPasswordService } from './reset-password/reset-password.service';
+import { ResetPasswordController } from './reset-password/reset-password.controller';
+import { TwoFactorController } from './two-factor/two-factor.controller';
+import { TwoFactorService } from './two-factor/two-factor.service';
+import { SharedService } from './shared/shared.service';
+import { TokensService } from './tokens/tokens.service';
 
 @Module({
   imports: [
@@ -32,13 +38,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     TypeOrmModule.forFeature([User, Verification]),
     UserModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, ResetPasswordController, TwoFactorController],
   providers: [
     AuthService,
     {
       provide: APP_FILTER,
       useClass: RpcExceptionFilter,
     },
+    ResetPasswordService,
+    TwoFactorService,
+    SharedService,
+    TokensService,
   ],
   exports: [AuthService, AuthModule],
 })
