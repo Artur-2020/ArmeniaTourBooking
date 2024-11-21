@@ -11,3 +11,8 @@ export interface SignInDTO {
 export interface CreatePasswordDTO extends SignInDTO {
   confirm_password: string;
 }
+
+export interface VerifyOtpDTO {
+  email: string;
+  code: string;
+}

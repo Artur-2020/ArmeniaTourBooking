@@ -1,5 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { VerificationRepository } from '../auth/repositories';
+import {
+  VerificationRepository,
+  UserSettingsRepository,
+} from '../auth/repositories';
 import { VerificationEntityType } from './constants/auth';
 import { UserRepository } from '../users/repsitories';
 import { ConfigService } from '@nestjs/config';
@@ -31,6 +34,7 @@ export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly verificationRepository: VerificationRepository,
+    private readonly userSettingsRepository: UserSettingsRepository,
     private readonly configService: ConfigService,
     private readonly sharedService: SharedService,
     private readonly tokensService: TokensService,
@@ -82,6 +86,11 @@ export class AuthService {
       user.id,
       role,
     );
+
+    await this.userSettingsRepository.createEntity({
+      enabledTwoFactor: false,
+      user: user,
+    });
     await this.userRepository.updateEntity({ id: user.id }, { refreshToken });
 
     delete user.password;
@@ -172,5 +181,9 @@ export class AuthService {
     );
 
     await this.verificationRepository.deleteEntity(existsToken.id);
+  }
+
+  async checkEnabledTwoFactor(userId: string) {
+    return this.userSettingsRepository.findOneByQuery({ userId }, ['user']);
   }
 }

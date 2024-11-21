@@ -94,13 +94,7 @@ export class SharedService {
     }
 
     // Send Verification Email
-
     await service.sendEmail({ email, code: newCode });
-    // if (type === VerificationEntityType['VERIFY_ACCOUNT']) {
-    //   await this.sendVerificationEmail({ email, code: newCode });
-    // } else {
-    //   await this.sendResetPasswordEmail({ email, code: newCode });
-    // }
   }
   async generateVerificationToken(type: string): Promise<string> {
     let code: string;

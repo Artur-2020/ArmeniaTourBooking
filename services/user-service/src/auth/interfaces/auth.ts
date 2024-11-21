@@ -37,3 +37,7 @@ export interface ResendCodeDTO {
   email: string;
   type: string;
 }
+
+export interface GetQRCodeReturn {
+  code: string;
+}

@@ -4,7 +4,9 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
+import { UserSettings } from '../../auth/entities/index';
 
 @Entity()
 export default class User {
@@ -25,6 +27,9 @@ export default class User {
 
   @Column({ nullable: true }) // Может быть nullable, если refresh token еще не установлен
   refreshToken: string;
+
+  @OneToOne(() => UserSettings, (settings) => settings.user)
+  settings: UserSettings;
 
   @CreateDateColumn({ type: 'timestamptz' }) // Using PostgreSQL's timestamp with time zone
   createdAt: Date;
