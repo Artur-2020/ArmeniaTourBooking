@@ -9,6 +9,12 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreatePasswordDTO, SignInDTO, SignUpDTO, VerifyOtpDTO } from '../dtos';
+import {
+  BasicReturnType,
+  generateQrReturn,
+  signInReturn,
+  signUpReturn,
+} from '../interfaces';
 
 @Controller('auth')
 export class AuthController {
@@ -17,7 +23,9 @@ export class AuthController {
   ) {}
 
   @Post('signup')
-  async signUp(@Body() data: SignUpDTO) {
+  async signUp(
+    @Body() data: SignUpDTO,
+  ): Promise<BasicReturnType<signUpReturn>> {
     try {
       return await this.usersClient.send({ cmd: 'sign_up' }, data).toPromise();
     } catch (error) {
@@ -33,7 +41,9 @@ export class AuthController {
     }
   }
   @Post('signin')
-  async signIn(@Body() data: SignInDTO) {
+  async signIn(
+    @Body() data: SignInDTO,
+  ): Promise<BasicReturnType<signInReturn>> {
     try {
       return await this.usersClient.send({ cmd: 'sign_in' }, data).toPromise();
     } catch (error) {
@@ -49,7 +59,9 @@ export class AuthController {
     }
   }
   @Post('verify-account')
-  async verifyAccount(@Body('token') token: string): Promise<string> {
+  async verifyAccount(
+    @Body('token') token: string,
+  ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
         .send({ cmd: 'verify_account' }, { token })
@@ -70,7 +82,7 @@ export class AuthController {
   @Post('verify-reset-password-code')
   async verifyResetPasswordCode(
     @Body('token') token: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
         .send({ cmd: 'verify_reset_password_code' }, { token })
@@ -88,7 +100,9 @@ export class AuthController {
     }
   }
   @Post('resend-verify-account-code')
-  async resendVerificationToken(@Body('email') email: string): Promise<string> {
+  async resendVerificationToken(
+    @Body('email') email: string,
+  ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
         .send({ cmd: 'resend_verification_code' }, { email })
@@ -109,7 +123,7 @@ export class AuthController {
   @Post('send-reset-password-code')
   async sendResetPasswordCode(
     @Body('email') email: string,
-  ): Promise<{ success: boolean }> {
+  ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
         .send({ cmd: 'reset_password_code' }, { email })
@@ -128,7 +142,9 @@ export class AuthController {
   }
 
   @Patch('create-new-password')
-  async createNewPassword(@Body() data: CreatePasswordDTO): Promise<boolean> {
+  async createNewPassword(
+    @Body() data: CreatePasswordDTO,
+  ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
         .send({ cmd: 'create_new_password' }, data)
@@ -145,8 +161,29 @@ export class AuthController {
       );
     }
   }
+
+  @Post('two-factor/generate-qr-code')
+  async generateQrCode(): Promise<BasicReturnType<generateQrReturn>> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'generate-qr-code' }, {})
+        .toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
   @Post('two-factor/verify-otp')
-  async verifyOTP(@Body() data: VerifyOtpDTO): Promise<boolean> {
+  async verifyOTP(
+    @Body() data: VerifyOtpDTO,
+  ): Promise<BasicReturnType<{ verified: boolean }>> {
     try {
       return await this.usersClient
         .send({ cmd: 'verify_otp' }, data)

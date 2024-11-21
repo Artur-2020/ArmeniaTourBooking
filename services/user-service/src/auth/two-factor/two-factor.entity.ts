@@ -2,27 +2,20 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  OneToOne,
-  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from '../../users/entities/index';
 
 @Entity()
-export default class UserSettings {
+export default class TwoFactor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ default: false })
-  enabledTwoFactor: boolean;
+  st: string;
 
-  @Column({ type: 'uuid' })
-  userId: string;
-
-  @OneToOne(() => User, (user) => user.settings, { onDelete: 'CASCADE' })
-  @JoinColumn()
-  user: User;
+  @Column()
+  email: string;
 
   @CreateDateColumn({ type: 'timestamptz' }) // Using PostgreSQL's timestamp with time zone
   createdAt: Date;

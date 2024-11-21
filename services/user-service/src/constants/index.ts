@@ -12,6 +12,8 @@ export const validations = {
 };
 
 export const services = {
+  operationSuccessfully: '{operation} successfully',
+  twoFactorIsNotActive: 'Two factor for this user is not active',
   verificationEmailText:
     '`Please verify your account \n Here your code {code} \n The code will be expired after {minutes} minutes',
   resetPasswordEmailText:

@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../users/entities';
-import { Verification, UserSettings } from '../auth/entities';
+import { Verification, UserSettings, TwoFactor } from '../auth/entities';
 export const typeOrmConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => ({
@@ -12,6 +12,6 @@ export const typeOrmConfig = (
   password: configService.get<string>('dbPassword'),
   database: configService.get<string>('dbName'),
   url: configService.get<string>('databaseUrl'),
-  entities: [User, Verification, UserSettings], // Добавьте все ваши сущности сюда
+  entities: [User, Verification, UserSettings, TwoFactor], // Добавьте все ваши сущности сюда
   synchronize: true, // В продакшене рекомендуется установить в false
 });
