@@ -30,8 +30,9 @@ export class ResetPasswordService {
     private readonly sharedService: SharedService,
   ) {}
   async sendEmail(data: { email: string; code: string }) {
+    const { expiredInValue } = VerificationEntityType.resetpassword;
     const { code, email } = data;
-    const minutes = this.configService.get<string>('resetPasswordExpiredAt');
+    const minutes = this.configService.get<string>(expiredInValue);
 
     const text = changeConstantValue(resetPasswordEmailText, { code, minutes });
     const resetPasswordEmailData: SendVerificationData = {
@@ -47,7 +48,7 @@ export class ResetPasswordService {
   async verifyResetPasswordCode(
     token?: string,
   ): Promise<BasicReturnType<null>> {
-    const type = VerificationEntityType.RESETPASSWORD;
+    const { value } = VerificationEntityType.resetpassword;
 
     if (!token) {
       throw new BadRequestException(
@@ -55,7 +56,7 @@ export class ResetPasswordService {
       );
     }
     const existsToken =
-      await this.sharedService.checkVerificationCodeExistsOrNot(token, type);
+      await this.sharedService.checkVerificationCodeExistsOrNot(token, value);
 
     if (!existsToken) {
       throw new BadRequestException(
@@ -67,7 +68,7 @@ export class ResetPasswordService {
 
     if (timeDif < 0) {
       throw new BadRequestException(
-        changeConstantValue(codeExpiredAt, { type }),
+        changeConstantValue(codeExpiredAt, { type: value }),
       );
     }
 

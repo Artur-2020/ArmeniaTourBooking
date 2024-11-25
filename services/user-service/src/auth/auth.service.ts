@@ -52,21 +52,19 @@ export class AuthService {
       );
     }
 
+    const { expiredInValue, value } = VerificationEntityType.verification;
+
     const hashedPassword = await hash(password);
 
-    const code = await this.sharedService.generateVerificationToken(
-      VerificationEntityType.VERIFY_ACCOUNT,
-    );
-    const expiredAtMinutes = this.configService.get<string>(
-      'accountVerificationExpiredAt',
-    );
+    const code = await this.sharedService.generateVerificationToken(value);
+    const expiredAtMinutes = this.configService.get<string>(expiredInValue);
     const expiredAt = new Date();
     expiredAt.setMinutes(expiredAt.getMinutes() + +expiredAtMinutes);
 
     const verificationData: IVerification = {
       email,
       token: code,
-      type: VerificationEntityType.VERIFY_ACCOUNT,
+      type: value,
       expiredAt,
     };
 
@@ -128,10 +126,10 @@ export class AuthService {
   }
 
   async sendEmail(data: { email: string; code: string }) {
+    const { expiredInValue } = VerificationEntityType.verification;
+
     const { code, email } = data;
-    const minutes = this.configService.get<string>(
-      'accountVerificationExpiredAt',
-    );
+    const minutes = this.configService.get<string>(expiredInValue);
 
     const text = changeConstantValue(verificationEmailText, { code, minutes });
     const verificationEmailData: SendVerificationData = {
@@ -145,7 +143,7 @@ export class AuthService {
   }
 
   async verifyAccount(token?: string) {
-    const type = VerificationEntityType.VERIFY_ACCOUNT;
+    const type = VerificationEntityType.verification.value;
     if (!token) {
       throw new BadRequestException(
         changeConstantValue(invalidItem, { item: 'Code' }),

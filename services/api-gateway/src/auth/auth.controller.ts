@@ -200,4 +200,46 @@ export class AuthController {
       );
     }
   }
+
+  @Post('two-factor/one-time-signin-code')
+  async sendOneTimeSignInCode(
+    @Body('email') email: string,
+  ): Promise<BasicReturnType<null>> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'one-time-sign-in-code' }, { email })
+        .toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Post('verify-one-time-signin-code')
+  async verifyOneTimeSigninCode(
+    @Body('token') token: string,
+  ): Promise<BasicReturnType<null>> {
+    try {
+      return await this.usersClient
+        .send({ cmd: 'verify-one-time-signin-code' }, { token })
+        .toPromise();
+    } catch (error) {
+      throw new HttpException(
+        {
+          error: true,
+          status: HttpStatus.BAD_REQUEST,
+          message: error.message,
+          details: error.details || [],
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 }
