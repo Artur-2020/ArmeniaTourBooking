@@ -11,6 +11,10 @@ import { AuthService } from './auth.service';
 import { ValidationPipe } from '../users/pipes/validation.pipe';
 import { VerificationEntityType } from './constants/auth';
 import { SharedService } from './shared/shared.service';
+import { services } from '../constants';
+import changeConstantValue from '../helpers/replaceConstantValue';
+
+const { operationSuccessfully } = services;
 
 @Controller('auth')
 @UsePipes(ValidationPipe)
@@ -20,17 +24,31 @@ export class AuthController {
     private readonly sharedService: SharedService,
   ) {}
   @MessagePattern({ cmd: 'sign_up' })
-  async signUp(@Payload() data: SignUpDto): Promise<signUpReturn> {
+  async signUp(
+    @Payload() data: SignUpDto,
+  ): Promise<BasicReturnType<signUpReturn>> {
     try {
-      return await this.authService.signUp(data);
+      const returnData = await this.authService.signUp(data);
+
+      return {
+        success: true,
+        data: returnData,
+        message: changeConstantValue(operationSuccessfully, {
+          operation: 'User was registered',
+        }),
+      };
     } catch (error) {
       throw new RpcException(error.message);
     }
   }
   @MessagePattern({ cmd: 'sign_in' })
-  async signIn(@Payload() data: SignInDto): Promise<signInReturn> {
+  async signIn(
+    @Payload() data: SignInDto,
+  ): Promise<BasicReturnType<signInReturn>> {
     try {
-      return await this.authService.signIn(data);
+      const returnData = await this.authService.signIn(data);
+
+      return { success: true, data: returnData };
     } catch (error) {
       throw new RpcException(error.message);
     }
@@ -41,7 +59,10 @@ export class AuthController {
     @Payload() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
     try {
-      const newData = { ...data, type: VerificationEntityType.VERIFY_ACCOUNT };
+      const newData = {
+        ...data,
+        type: VerificationEntityType.verification.value,
+      };
       await this.sharedService.resendCode(newData, this.authService);
       return { success: true };
     } catch (error) {

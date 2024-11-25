@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { VerificationEntityType } from '../constants/auth';
+import { VerificationEntityTypeEnum } from '../constants/auth';
 @Entity()
 export default class Verification {
   @PrimaryGeneratedColumn('uuid')
@@ -18,7 +18,7 @@ export default class Verification {
   @Column({ unique: true })
   token: string;
 
-  @Column({ enum: VerificationEntityType, nullable: false })
+  @Column({ enum: VerificationEntityTypeEnum, nullable: false })
   type: string;
 
   @Column({ default: 0 })

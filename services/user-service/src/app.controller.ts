@@ -9,7 +9,6 @@ export class AppController {
   }
   @MessagePattern({ cmd: 'say' })
   say(@Payload() data: string) {
-    console.log('data ===>', data);
     return 'Hello Bro';
   }
 }

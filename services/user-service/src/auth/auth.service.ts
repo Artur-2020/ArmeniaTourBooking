@@ -1,5 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { VerificationRepository } from '../auth/repositories';
+import {
+  VerificationRepository,
+  UserSettingsRepository,
+} from '../auth/repositories';
 import { VerificationEntityType } from './constants/auth';
 import { UserRepository } from '../users/repsitories';
 import { ConfigService } from '@nestjs/config';
@@ -31,6 +34,7 @@ export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly verificationRepository: VerificationRepository,
+    private readonly userSettingsRepository: UserSettingsRepository,
     private readonly configService: ConfigService,
     private readonly sharedService: SharedService,
     private readonly tokensService: TokensService,
@@ -48,21 +52,19 @@ export class AuthService {
       );
     }
 
+    const { expiredInValue, value } = VerificationEntityType.verification;
+
     const hashedPassword = await hash(password);
 
-    const code = await this.sharedService.generateVerificationToken(
-      VerificationEntityType.VERIFY_ACCOUNT,
-    );
-    const expiredAtMinutes = this.configService.get<string>(
-      'accountVerificationExpiredAt',
-    );
+    const code = await this.sharedService.generateVerificationToken(value);
+    const expiredAtMinutes = this.configService.get<string>(expiredInValue);
     const expiredAt = new Date();
     expiredAt.setMinutes(expiredAt.getMinutes() + +expiredAtMinutes);
 
     const verificationData: IVerification = {
       email,
       token: code,
-      type: VerificationEntityType.VERIFY_ACCOUNT,
+      type: value,
       expiredAt,
     };
 
@@ -82,6 +84,11 @@ export class AuthService {
       user.id,
       role,
     );
+
+    await this.userSettingsRepository.createEntity({
+      enabledTwoFactor: false,
+      user: user,
+    });
     await this.userRepository.updateEntity({ id: user.id }, { refreshToken });
 
     delete user.password;
@@ -119,10 +126,10 @@ export class AuthService {
   }
 
   async sendEmail(data: { email: string; code: string }) {
+    const { expiredInValue } = VerificationEntityType.verification;
+
     const { code, email } = data;
-    const minutes = this.configService.get<string>(
-      'accountVerificationExpiredAt',
-    );
+    const minutes = this.configService.get<string>(expiredInValue);
 
     const text = changeConstantValue(verificationEmailText, { code, minutes });
     const verificationEmailData: SendVerificationData = {
@@ -136,7 +143,7 @@ export class AuthService {
   }
 
   async verifyAccount(token?: string) {
-    const type = VerificationEntityType.VERIFY_ACCOUNT;
+    const type = VerificationEntityType.verification.value;
     if (!token) {
       throw new BadRequestException(
         changeConstantValue(invalidItem, { item: 'Code' }),
@@ -172,5 +179,9 @@ export class AuthService {
     );
 
     await this.verificationRepository.deleteEntity(existsToken.id);
+  }
+
+  async checkEnabledTwoFactor(userId: string) {
+    return this.userSettingsRepository.findOneByQuery({ userId }, ['user']);
   }
 }

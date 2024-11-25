@@ -5,10 +5,7 @@ import {
 } from '@nestjs/common';
 import { Verification } from '../entities';
 import { generateVerificationCode } from '../../helpers/generateVerificationCode';
-import {
-  VERIFICATION_ATTEMPTS_COUNTS,
-  VerificationEntityType,
-} from '../constants/auth';
+import { VerificationEntityType } from '../constants/auth';
 import getTimeMinuteDifference from '../../helpers/compareDatesAndGetDiff';
 import changeConstantValue from '../../helpers/replaceConstantValue';
 import { UserRepository } from '../../users/repsitories';
@@ -18,6 +15,7 @@ import { services } from '../../constants';
 import { ResendCodeDTO } from '../interfaces/auth';
 import { ResetPasswordService } from '../reset-password/reset-password.service';
 import { AuthService } from '../auth.service';
+import { TwoFactorService } from '../two-factor/two-factor.service';
 const { maximumAttemptsCountReached, resendBlocked } = services;
 const { notFound, accountIsActive } = services;
 @Injectable()
@@ -38,9 +36,10 @@ export class SharedService {
 
   async resendCode(
     data: ResendCodeDTO,
-    service: AuthService | ResetPasswordService,
+    service: AuthService | ResetPasswordService | TwoFactorService,
   ) {
     const { email, type } = data;
+    const { expiredInValue } = VerificationEntityType[type];
     const existsAccount = await this.userRepository.findOne({
       where: { email },
     });
@@ -55,11 +54,7 @@ export class SharedService {
       throw new BadRequestException(accountIsActive);
     }
 
-    const expiredAtType =
-      type === VerificationEntityType['VERIFY_ACCOUNT']
-        ? 'accountVerificationExpiredAt'
-        : 'resetPasswordExpiredAt';
-    const expiredAtMinutes = this.configService.get<string>(expiredAtType);
+    const expiredAtMinutes = this.configService.get<string>(expiredInValue);
     const expiredAtDate = new Date();
 
     expiredAtDate.setMinutes(expiredAtDate.getMinutes() + +expiredAtMinutes);
@@ -86,6 +81,7 @@ export class SharedService {
       await this.verificationRepository.update(
         { id: existsVerificationToken.id },
         {
+          expiredAt: expiredAtDate,
           token: newCode,
           blockedAt: null,
           attemptsCount: () => 'attemptsCount + 1',
@@ -94,13 +90,7 @@ export class SharedService {
     }
 
     // Send Verification Email
-
     await service.sendEmail({ email, code: newCode });
-    // if (type === VerificationEntityType['VERIFY_ACCOUNT']) {
-    //   await this.sendVerificationEmail({ email, code: newCode });
-    // } else {
-    //   await this.sendResetPasswordEmail({ email, code: newCode });
-    // }
   }
   async generateVerificationToken(type: string): Promise<string> {
     let code: string;
@@ -120,26 +110,17 @@ export class SharedService {
     const { type: verificationType, id, blockedAt } = existsVerificationToken;
 
     let { attemptsCount } = existsVerificationToken;
+    const { value, blockedInValue, count } =
+      VerificationEntityType[verificationType];
 
-    const allowedAttemptsCount = VERIFICATION_ATTEMPTS_COUNTS[verificationType];
-
-    let type = VerificationEntityType['VERIFY_ACCOUNT'];
-    let minutes = this.configService.get<string>(
-      'accountVerificationBlockMinutes',
-    );
-
-    if (verificationType === VerificationEntityType['RESETPASSWORD']) {
-      minutes = this.configService.get<string>('resetPasswordBlockMinutes');
-
-      type = VerificationEntityType['RESETPASSWORD'];
-    }
+    const minutes = this.configService.get<string>(blockedInValue);
 
     if (blockedAt) {
       const timeDif = getTimeMinuteDifference(blockedAt);
       if (timeDif > 0) {
         throw new BadRequestException(
           changeConstantValue(resendBlocked, {
-            type,
+            type: value,
             minutes: timeDif,
           }),
         );
@@ -147,7 +128,7 @@ export class SharedService {
       attemptsCount = 1;
     }
 
-    if (attemptsCount >= allowedAttemptsCount) {
+    if (attemptsCount >= count) {
       const plusBlockedAt = new Date();
       plusBlockedAt.setMinutes(plusBlockedAt.getMinutes() + +minutes);
 
@@ -157,7 +138,7 @@ export class SharedService {
       );
       throw new BadRequestException(
         changeConstantValue(maximumAttemptsCountReached, {
-          type,
+          type: value,
           minutes,
         }),
       );
