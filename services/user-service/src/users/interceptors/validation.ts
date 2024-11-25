@@ -24,7 +24,6 @@ export class ModuleValidationInterceptor implements NestInterceptor {
       handler,
     )[0] as Type<any>;
 
-    console.log('I am in the interceptor ----->');
     if (!metatype || !this.toValidate(metatype)) {
       return next.handle();
     }

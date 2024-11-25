@@ -9,7 +9,6 @@ export class EmailController {
   async handleSendEmail(
     @Payload() data: { to: string; subject: string; text: string },
   ) {
-    console.log('asklakslkalksa');
     await this.emailService.sendEmail(data.to, data.subject, data.text);
   }
 }

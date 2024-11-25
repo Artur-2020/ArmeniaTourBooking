@@ -17,8 +17,10 @@ export const VerificationEntityType = {
     count: 3,
     expiredInValue: 'accountVerificationExpiredIn',
   },
-  oneTimeSignIn: {
+  onetimesignin: {
     value: 'onetimesignin',
     count: 5,
+    blockedInValue: 'oneTimeSignInBlockMinutes',
+    expiredInValue: 'oneTimeSignInExpiredIn',
   },
 };

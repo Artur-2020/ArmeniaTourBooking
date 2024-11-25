@@ -15,6 +15,7 @@ import { services } from '../../constants';
 import { ResendCodeDTO } from '../interfaces/auth';
 import { ResetPasswordService } from '../reset-password/reset-password.service';
 import { AuthService } from '../auth.service';
+import { TwoFactorService } from '../two-factor/two-factor.service';
 const { maximumAttemptsCountReached, resendBlocked } = services;
 const { notFound, accountIsActive } = services;
 @Injectable()
@@ -35,10 +36,10 @@ export class SharedService {
 
   async resendCode(
     data: ResendCodeDTO,
-    service: AuthService | ResetPasswordService,
+    service: AuthService | ResetPasswordService | TwoFactorService,
   ) {
     const { email, type } = data;
-    const { expiredAtValue } = VerificationEntityType[type];
+    const { expiredInValue } = VerificationEntityType[type];
     const existsAccount = await this.userRepository.findOne({
       where: { email },
     });
@@ -53,7 +54,7 @@ export class SharedService {
       throw new BadRequestException(accountIsActive);
     }
 
-    const expiredAtMinutes = this.configService.get<string>(expiredAtValue);
+    const expiredAtMinutes = this.configService.get<string>(expiredInValue);
     const expiredAtDate = new Date();
 
     expiredAtDate.setMinutes(expiredAtDate.getMinutes() + +expiredAtMinutes);
@@ -80,6 +81,7 @@ export class SharedService {
       await this.verificationRepository.update(
         { id: existsVerificationToken.id },
         {
+          expiredAt: expiredAtDate,
           token: newCode,
           blockedAt: null,
           attemptsCount: () => 'attemptsCount + 1',

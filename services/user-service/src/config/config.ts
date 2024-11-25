@@ -19,5 +19,8 @@ export default () => ({
   accountVerificationBlockMinutes:
     process.env.ACCOUNT_VERIFICATION_BLOCK_MINUTES,
   accountVerificationExpiredIn: process.env.ACCOUNT_VERIFICATION_EXPIRED_IN,
+  oneTimeSignInExpiredIn: process.env.ONE_TIME_SIGN_IN_EXPIRED_IN,
+  oneTimeSignInBlockMinutes: process.env.ONE_TIME_SIGN_IN_BLOCK_MINUTES,
+
   twoFactorAppName: process.env.TWO_FACTOR_APP_NAME,
 });
