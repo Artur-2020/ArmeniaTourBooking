@@ -22,7 +22,10 @@ export class ResetPasswordController {
     @Payload() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
     try {
-      const newData = { ...data, type: VerificationEntityType.RESETPASSWORD };
+      const newData = {
+        ...data,
+        type: VerificationEntityType.resetpassword.value,
+      };
       await this.sharedService.resendCode(newData, this.resetPasswordService);
       return { success: true };
     } catch (error) {

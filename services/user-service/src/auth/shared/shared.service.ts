@@ -5,10 +5,7 @@ import {
 } from '@nestjs/common';
 import { Verification } from '../entities';
 import { generateVerificationCode } from '../../helpers/generateVerificationCode';
-import {
-  VERIFICATION_ATTEMPTS_COUNTS,
-  VerificationEntityType,
-} from '../constants/auth';
+import { VerificationEntityType } from '../constants/auth';
 import getTimeMinuteDifference from '../../helpers/compareDatesAndGetDiff';
 import changeConstantValue from '../../helpers/replaceConstantValue';
 import { UserRepository } from '../../users/repsitories';
@@ -41,6 +38,7 @@ export class SharedService {
     service: AuthService | ResetPasswordService,
   ) {
     const { email, type } = data;
+    const { expiredAtValue } = VerificationEntityType[type];
     const existsAccount = await this.userRepository.findOne({
       where: { email },
     });
@@ -55,11 +53,7 @@ export class SharedService {
       throw new BadRequestException(accountIsActive);
     }
 
-    const expiredAtType =
-      type === VerificationEntityType['VERIFY_ACCOUNT']
-        ? 'accountVerificationExpiredAt'
-        : 'resetPasswordExpiredAt';
-    const expiredAtMinutes = this.configService.get<string>(expiredAtType);
+    const expiredAtMinutes = this.configService.get<string>(expiredAtValue);
     const expiredAtDate = new Date();
 
     expiredAtDate.setMinutes(expiredAtDate.getMinutes() + +expiredAtMinutes);
@@ -114,26 +108,17 @@ export class SharedService {
     const { type: verificationType, id, blockedAt } = existsVerificationToken;
 
     let { attemptsCount } = existsVerificationToken;
+    const { value, blockedInValue, count } =
+      VerificationEntityType[verificationType];
 
-    const allowedAttemptsCount = VERIFICATION_ATTEMPTS_COUNTS[verificationType];
-
-    let type = VerificationEntityType['VERIFY_ACCOUNT'];
-    let minutes = this.configService.get<string>(
-      'accountVerificationBlockMinutes',
-    );
-
-    if (verificationType === VerificationEntityType['RESETPASSWORD']) {
-      minutes = this.configService.get<string>('resetPasswordBlockMinutes');
-
-      type = VerificationEntityType['RESETPASSWORD'];
-    }
+    const minutes = this.configService.get<string>(blockedInValue);
 
     if (blockedAt) {
       const timeDif = getTimeMinuteDifference(blockedAt);
       if (timeDif > 0) {
         throw new BadRequestException(
           changeConstantValue(resendBlocked, {
-            type,
+            type: value,
             minutes: timeDif,
           }),
         );
@@ -141,7 +126,7 @@ export class SharedService {
       attemptsCount = 1;
     }
 
-    if (attemptsCount >= allowedAttemptsCount) {
+    if (attemptsCount >= count) {
       const plusBlockedAt = new Date();
       plusBlockedAt.setMinutes(plusBlockedAt.getMinutes() + +minutes);
 
@@ -151,7 +136,7 @@ export class SharedService {
       );
       throw new BadRequestException(
         changeConstantValue(maximumAttemptsCountReached, {
-          type,
+          type: value,
           minutes,
         }),
       );

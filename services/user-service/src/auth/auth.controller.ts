@@ -59,7 +59,10 @@ export class AuthController {
     @Payload() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
     try {
-      const newData = { ...data, type: VerificationEntityType.VERIFY_ACCOUNT };
+      const newData = {
+        ...data,
+        type: VerificationEntityType.verification.value,
+      };
       await this.sharedService.resendCode(newData, this.authService);
       return { success: true };
     } catch (error) {
