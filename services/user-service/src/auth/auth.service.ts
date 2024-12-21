@@ -137,9 +137,7 @@ export class AuthService {
       subject: 'Account Verification',
       text,
     };
-    await this.notificationsClient
-      .send({ cmd: 'send_email' }, verificationEmailData)
-      .toPromise();
+    this.notificationsClient.emit('send_email', verificationEmailData);
   }
 
   async verifyAccount(token?: string) {

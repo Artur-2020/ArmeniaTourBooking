@@ -120,9 +120,7 @@ export class TwoFactorService {
       subject: 'One Time Sign In',
       text,
     };
-    await this.notificationsClient
-      .send({ cmd: 'send_email' }, resetPasswordEmailData)
-      .toPromise();
+    this.notificationsClient.emit('send_email', resetPasswordEmailData);
   }
 
   async verifyOneTimeSignInCode(

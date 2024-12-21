@@ -40,9 +40,7 @@ export class ResetPasswordService {
       subject: 'Reset Password',
       text,
     };
-    await this.notificationsClient
-      .send({ cmd: 'send_email' }, resetPasswordEmailData)
-      .toPromise();
+    this.notificationsClient.emit('send_email', resetPasswordEmailData);
   }
 
   async verifyResetPasswordCode(
