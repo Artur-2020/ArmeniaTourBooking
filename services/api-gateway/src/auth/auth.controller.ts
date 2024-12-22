@@ -8,6 +8,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreatePasswordDTO, SignInDTO, SignUpDTO, VerifyOtpDTO } from '../dtos';
 import {
   BasicReturnType,
@@ -16,6 +17,7 @@ import {
   signUpReturn,
 } from '../interfaces';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -23,6 +25,8 @@ export class AuthController {
   ) {}
 
   @Post('signup')
+  @ApiOperation({ summary: 'Sign Up' }) // Описание эндпоинта
+  @ApiResponse({ status: 200, description: 'Success or Error' })
   async signUp(
     @Body() data: SignUpDTO,
   ): Promise<BasicReturnType<signUpReturn>> {

@@ -1,18 +1,49 @@
-export interface SignUpDTO extends SignInDTO {
-  role: string;
-  confirm_password: string;
-}
+import { ApiProperty } from '@nestjs/swagger';
 
-export interface SignInDTO {
+export class SignInDTO {
+  @ApiProperty({
+    example: 'john.doe@example.com',
+    description: 'The email of the user',
+  })
   email: string;
+  @ApiProperty({
+    example: 'password',
+    description: 'The password of the user',
+  })
   password: string;
 }
 
-export interface CreatePasswordDTO extends SignInDTO {
+export class SignUpDTO extends SignInDTO {
+  @ApiProperty({
+    example: 'admin, user, manager',
+    description: 'The role of the user',
+  })
+  role: string;
+  @ApiProperty({
+    example: 'password',
+    description: 'Confirmation of the password',
+  })
   confirm_password: string;
 }
 
-export interface VerifyOtpDTO {
+export class CreatePasswordDTO extends SignInDTO {
+  @ApiProperty({
+    example: 'password',
+    description: 'Confirmation of the password',
+  })
+  confirm_password: string;
+}
+
+export class VerifyOtpDTO {
+  @ApiProperty({
+    example: 'john.doe@example.com',
+    description: 'The email of the user',
+  })
   email: string;
+
+  @ApiProperty({
+    example: '513194',
+    description: 'The code for qr code auth from authenticator app',
+  })
   code: string;
 }
