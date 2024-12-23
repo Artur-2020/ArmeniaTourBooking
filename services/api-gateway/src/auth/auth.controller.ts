@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Inject, Patch, Post } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
@@ -23,6 +15,7 @@ import {
   signInReturn,
   signUpReturn,
 } from '../interfaces';
+import CatchError from '../utils/catch-error';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -40,15 +33,7 @@ export class AuthController {
     try {
       return await this.usersClient.send({ cmd: 'sign_up' }, data).toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
   @Post('signin')
@@ -58,15 +43,7 @@ export class AuthController {
     try {
       return await this.usersClient.send({ cmd: 'sign_in' }, data).toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
   @Post('verify-account')
@@ -76,15 +53,7 @@ export class AuthController {
         .send({ cmd: 'verify_account' }, { token: dto.token })
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
 
@@ -97,15 +66,7 @@ export class AuthController {
         .send({ cmd: 'verify_reset_password_code' }, { token: dto.token })
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
   @Post('resend-verify-account-code')
@@ -117,15 +78,7 @@ export class AuthController {
         .send({ cmd: 'resend_verification_code' }, { email: dto.email })
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
 
@@ -138,15 +91,7 @@ export class AuthController {
         .send({ cmd: 'reset_password_code' }, { email: dto.email })
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
 
@@ -159,15 +104,7 @@ export class AuthController {
         .send({ cmd: 'create_new_password' }, data)
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
 
@@ -178,15 +115,7 @@ export class AuthController {
         .send({ cmd: 'generate-qr-code' }, {})
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
   @Post('two-factor/verify-otp')
@@ -198,15 +127,7 @@ export class AuthController {
         .send({ cmd: 'verify_otp' }, data)
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
 
@@ -219,15 +140,7 @@ export class AuthController {
         .send({ cmd: 'one-time-sign-in-code' }, { email: dto.email })
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
 
@@ -240,15 +153,7 @@ export class AuthController {
         .send({ cmd: 'verify-one-time-signin-code' }, { token: dto.token })
         .toPromise();
     } catch (error) {
-      throw new HttpException(
-        {
-          error: true,
-          status: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          details: error.details || [],
-        },
-        HttpStatus.BAD_REQUEST,
-      );
+      CatchError(error);
     }
   }
 }
