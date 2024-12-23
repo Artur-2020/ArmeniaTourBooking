@@ -47,3 +47,19 @@ export class VerifyOtpDTO {
   })
   code: string;
 }
+
+export class TokenDto {
+  @ApiProperty({
+    description: 'The code from email',
+    example: 'abc123',
+  })
+  token: string;
+}
+
+export class EmailDto {
+  @ApiProperty({
+    example: 'john.doe@example.com',
+    description: 'The email of the user',
+  })
+  email: string;
+}

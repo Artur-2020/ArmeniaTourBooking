@@ -9,7 +9,14 @@ import {
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CreatePasswordDTO, SignInDTO, SignUpDTO, VerifyOtpDTO } from '../dtos';
+import {
+  CreatePasswordDTO,
+  EmailDto,
+  SignInDTO,
+  SignUpDTO,
+  TokenDto,
+  VerifyOtpDTO,
+} from '../dtos';
 import {
   BasicReturnType,
   generateQrReturn,
@@ -63,12 +70,10 @@ export class AuthController {
     }
   }
   @Post('verify-account')
-  async verifyAccount(
-    @Body('token') token: string,
-  ): Promise<BasicReturnType<null>> {
+  async verifyAccount(@Body() dto: TokenDto): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
-        .send({ cmd: 'verify_account' }, { token })
+        .send({ cmd: 'verify_account' }, { token: dto.token })
         .toPromise();
     } catch (error) {
       throw new HttpException(
@@ -85,11 +90,11 @@ export class AuthController {
 
   @Post('verify-reset-password-code')
   async verifyResetPasswordCode(
-    @Body('token') token: string,
+    @Body() dto: TokenDto,
   ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
-        .send({ cmd: 'verify_reset_password_code' }, { token })
+        .send({ cmd: 'verify_reset_password_code' }, { token: dto.token })
         .toPromise();
     } catch (error) {
       throw new HttpException(
@@ -105,11 +110,11 @@ export class AuthController {
   }
   @Post('resend-verify-account-code')
   async resendVerificationToken(
-    @Body('email') email: string,
+    @Body() dto: EmailDto,
   ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
-        .send({ cmd: 'resend_verification_code' }, { email })
+        .send({ cmd: 'resend_verification_code' }, { email: dto.email })
         .toPromise();
     } catch (error) {
       throw new HttpException(
@@ -126,11 +131,11 @@ export class AuthController {
 
   @Post('send-reset-password-code')
   async sendResetPasswordCode(
-    @Body('email') email: string,
+    @Body() dto: EmailDto,
   ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
-        .send({ cmd: 'reset_password_code' }, { email })
+        .send({ cmd: 'reset_password_code' }, { email: dto.email })
         .toPromise();
     } catch (error) {
       throw new HttpException(
@@ -207,11 +212,11 @@ export class AuthController {
 
   @Post('two-factor/one-time-signin-code')
   async sendOneTimeSignInCode(
-    @Body('email') email: string,
+    @Body() dto: EmailDto,
   ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
-        .send({ cmd: 'one-time-sign-in-code' }, { email })
+        .send({ cmd: 'one-time-sign-in-code' }, { email: dto.email })
         .toPromise();
     } catch (error) {
       throw new HttpException(
@@ -228,11 +233,11 @@ export class AuthController {
 
   @Post('verify-one-time-signin-code')
   async verifyOneTimeSigninCode(
-    @Body('token') token: string,
+    @Body() dto: TokenDto,
   ): Promise<BasicReturnType<null>> {
     try {
       return await this.usersClient
-        .send({ cmd: 'verify-one-time-signin-code' }, { token })
+        .send({ cmd: 'verify-one-time-signin-code' }, { token: dto.token })
         .toPromise();
     } catch (error) {
       throw new HttpException(
