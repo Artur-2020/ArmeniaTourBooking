@@ -1,3 +1,7 @@
+/**
+ * Get specific date difference compared with the now in minutes
+ * @param dbDateString
+ */
 export default function getTimeMinuteDifference(dbDateString: Date): number {
   const dbDate = new Date(dbDateString);
   const currentDate = new Date();

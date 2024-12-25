@@ -9,12 +9,22 @@ export class TokensService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
+
+  /**
+   * Generate access token based on secret from env
+   * @param payload
+   */
   generateAccessToken(payload: jwtPayload): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.get<string>('accessTokenSecret'),
       expiresIn: this.configService.get<string>('accessTokenExpiresIn'),
     });
   }
+
+  /**
+   * Generate access token based on secret from env
+   * @param payload
+   */
 
   generateRefreshToken(payload: jwtPayload): string {
     return this.jwtService.sign(payload, {
@@ -23,6 +33,11 @@ export class TokensService {
     });
   }
 
+  /**
+   * Generate refresh and access tokens for user including id and role and return
+   * @param userId
+   * @param role
+   */
   generateTokens(
     userId: string,
     role: string,

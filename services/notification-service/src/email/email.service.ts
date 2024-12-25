@@ -18,6 +18,13 @@ export class EmailService {
     },
   });
 
+  /**
+   * Function for send email with passed data
+   * @param to
+   * @param subject
+   * @param text
+   */
+
   async sendEmail(to: string, subject: string, text: string) {
     const info = await this.transporter.sendMail({
       from: this.username,
