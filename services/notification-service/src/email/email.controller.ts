@@ -6,6 +6,9 @@ import { EmailService } from './email.service';
 export class EmailController {
   constructor(private readonly emailService: EmailService) {}
   @EventPattern('send_email')
+  /**
+   * Event handler for the send email action
+   */
   async handleEventEmail(
     @Payload() data: { to: string; subject: string; text: string },
   ) {

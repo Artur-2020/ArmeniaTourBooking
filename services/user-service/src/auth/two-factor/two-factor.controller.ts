@@ -16,6 +16,9 @@ export class TwoFactorController {
   ) {}
 
   @MessagePattern({ cmd: 'generate-qr-code' })
+  /**
+   * Generate Qr code for the user
+   */
   async generateQrCode(): Promise<BasicReturnType<GetQRCodeReturn>> {
     try {
       const userId = '36c8be2e-4603-4a96-937d-f9ed1351a44f';
@@ -28,6 +31,9 @@ export class TwoFactorController {
     }
   }
   @MessagePattern({ cmd: 'verify_otp' })
+  /**
+   * Verify otp for the two factor
+   */
   async verifyOTP(
     @Payload() data: VerifyOptDto,
   ): Promise<BasicReturnType<{ verified: boolean }>> {
@@ -42,6 +48,9 @@ export class TwoFactorController {
   }
 
   @MessagePattern({ cmd: 'one-time-sign-in-code' })
+  /**
+   * Send one time code for the user sign in when they forgot qr code otp
+   */
   async oneTimeSignInCode(
     @Payload() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -59,8 +68,12 @@ export class TwoFactorController {
     }
   }
 
+  /**
+   * Verify code from email for one time sign in
+   * @param data
+   */
   @MessagePattern({ cmd: 'verify-one-time-signin-code' })
-  async verifyResetPasswordCode(
+  async verifyOneTimeSignInCode(
     @Payload() data: VerifyAccountDto,
   ): Promise<BasicReturnType<null>> {
     try {

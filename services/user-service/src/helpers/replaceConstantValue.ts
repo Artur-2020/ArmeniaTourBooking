@@ -1,3 +1,8 @@
+/**
+ * Change constant values in string like {name} to name value
+ * @param string
+ * @param values
+ */
 export default function changeConstantValue(
   string: string,
   values: Record<string, string | number | boolean> = {},

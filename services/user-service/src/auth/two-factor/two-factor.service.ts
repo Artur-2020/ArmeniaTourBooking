@@ -26,16 +26,29 @@ export class TwoFactorService {
     private readonly sharedService: SharedService,
     private readonly verificationRepository: VerificationRepository,
   ) {}
+
+  /**
+   * Generate secret for using in the qr code
+   */
   generateSecret() {
     const appName = this.configService.get<string>('twoFactorAppName');
     return speakeasy.generateSecret({ name: appName });
   }
 
+  /**
+   * Generate qr code for the two factor auth app
+   * @param secret
+   */
   async generateQRCode(secret: string) {
     const dataURL = await qrcode.toDataURL(secret);
     return dataURL as string;
   }
 
+  /**
+   * Verify code from the auth app
+   * @param token
+   * @param secret
+   */
   verifyToken(token: string, secret: string) {
     return speakeasy.totp.verify({
       secret,
@@ -44,10 +57,18 @@ export class TwoFactorService {
     });
   }
 
+  /**
+   * Check has the user enabled two factor or not
+   * @param userId
+   */
   async checkEnabledTwoFactor(userId: string) {
     return await this.authService.checkEnabledTwoFactor(userId);
   }
 
+  /**
+   * Get the qr code for the specific user
+   * @param userId
+   */
   async getQrCode(userId: string): Promise<string> {
     //todo do this with req.user
 
@@ -67,6 +88,11 @@ export class TwoFactorService {
     return await this.generateQRCode(otpauth_url);
   }
 
+  /**
+   * Update user two factor secret
+   * @param email
+   * @param secret
+   */
   async updateUserTwoFactor({
     email,
     secret,
@@ -91,6 +117,12 @@ export class TwoFactorService {
     }
   }
 
+  /**
+   * Verify user two factor otp
+   * @param code
+   * @param email
+   */
+
   async verifyOtp({
     code,
     email,
@@ -109,6 +141,10 @@ export class TwoFactorService {
     return this.verifyToken(code, st);
   }
 
+  /**
+   * Function for send the one time sign in email
+   * @param data
+   */
   async sendEmail(data: { email: string; code: string }) {
     const { expiredInValue } = VerificationEntityType.onetimesignin;
     const { code, email } = data;
@@ -123,6 +159,10 @@ export class TwoFactorService {
     this.notificationsClient.emit('send_email', resetPasswordEmailData);
   }
 
+  /**
+   * Verify one time sign in code from the email
+   * @param token
+   */
   async verifyOneTimeSignInCode(
     token?: string,
   ): Promise<BasicReturnType<null>> {

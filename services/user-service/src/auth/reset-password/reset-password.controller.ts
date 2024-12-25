@@ -18,6 +18,9 @@ export class ResetPasswordController {
   ) {}
 
   @MessagePattern({ cmd: 'reset_password_code' })
+  /**
+   * Send reset password code via email to the user
+   */
   async sendForgetPasswordCode(
     @Payload() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -33,6 +36,11 @@ export class ResetPasswordController {
       throw new RpcException(error.message);
     }
   }
+
+  /**
+   * Verify code from email for allow to go to the new password page
+   * @param data
+   */
   @MessagePattern({ cmd: 'verify_reset_password_code' })
   async verifyResetPasswordCode(
     @Payload() data: VerifyAccountDto,
@@ -47,6 +55,10 @@ export class ResetPasswordController {
     }
   }
 
+  /**
+   * Handler for the create new password action
+   * @param data
+   */
   @MessagePattern({ cmd: 'create_new_password' })
   async createNewPassword(
     @Payload() data: CreateNewPasswordDto,

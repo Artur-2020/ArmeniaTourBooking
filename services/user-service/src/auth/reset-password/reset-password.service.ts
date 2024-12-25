@@ -19,6 +19,10 @@ import { SharedService } from '../shared/shared.service';
 
 const { resetPasswordEmailText, codeExpiredAt } = services;
 const { invalidItem } = validations;
+
+/**
+ * Service responsible for handling password reset functionality.
+ */
 @Injectable()
 export class ResetPasswordService {
   constructor(
@@ -29,6 +33,11 @@ export class ResetPasswordService {
     private readonly notificationsClient: ClientProxy,
     private readonly sharedService: SharedService,
   ) {}
+
+  /**
+   * Sends a reset password email containing a verification code.
+   * @param data Object containing the recipient's email and the verification code.
+   */
   async sendEmail(data: { email: string; code: string }) {
     const { expiredInValue } = VerificationEntityType.resetpassword;
     const { code, email } = data;
@@ -43,6 +52,13 @@ export class ResetPasswordService {
     this.notificationsClient.emit('send_email', resetPasswordEmailData);
   }
 
+  /**
+   * Verifies the validity of a reset password code.
+   * Deletes the code upon successful verification.
+   * @param token The reset password code to verify.
+   * @returns A success response if the code is valid.
+   * @throws {BadRequestException} If the code is invalid or expired.
+   */
   async verifyResetPasswordCode(
     token?: string,
   ): Promise<BasicReturnType<null>> {
@@ -75,6 +91,12 @@ export class ResetPasswordService {
     return { success: true };
   }
 
+  /**
+   * Creates a new password for a user account.
+   * @param data Object containing the new password and the user's email.
+   * @returns A success response if the password is successfully updated.
+   * @throws {NotFoundException} If the email does not exist.
+   */
   async createNewPassword(
     data: CreateNewPasswordDto,
   ): Promise<BasicReturnType<null>> {
