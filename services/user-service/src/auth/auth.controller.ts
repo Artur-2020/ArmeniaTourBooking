@@ -24,6 +24,9 @@ export class AuthController {
     private readonly sharedService: SharedService,
   ) {}
   @MessagePattern({ cmd: 'sign_up' })
+  /**
+   * Signup action handler
+   */
   async signUp(
     @Payload() data: SignUpDto,
   ): Promise<BasicReturnType<signUpReturn>> {
@@ -42,6 +45,9 @@ export class AuthController {
     }
   }
   @MessagePattern({ cmd: 'sign_in' })
+  /**
+   * Sign In action handler
+   */
   async signIn(
     @Payload() data: SignInDto,
   ): Promise<BasicReturnType<signInReturn>> {
@@ -55,6 +61,9 @@ export class AuthController {
   }
 
   @MessagePattern({ cmd: 'resend_verification_code' })
+  /**
+   * Send user profile activated email
+   */
   async resendVerificationCode(
     @Payload() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -71,6 +80,10 @@ export class AuthController {
     }
   }
 
+  /**
+   * Verify user account by code from the email
+   * @param data
+   */
   @MessagePattern({ cmd: 'verify_account' })
   async verifyAccount(
     @Payload() data: VerifyAccountDto,

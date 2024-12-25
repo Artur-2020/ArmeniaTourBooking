@@ -7,6 +7,13 @@ import {
 } from 'class-validator';
 
 export type objectType = Record<string, number | boolean | string | null>;
+
+/**
+ * Function for use in the dtos for matching two properties like password, confirm_password
+ * @param property
+ * @param validationOptions
+ * @constructor
+ */
 export function Match(property: string, validationOptions?: ValidationOptions) {
   return (object: objectType, propertyName: string) => {
     registerDecorator({

@@ -42,6 +42,10 @@ export class AuthService {
     private readonly notificationsClient: ClientProxy,
   ) {}
 
+  /**
+   * Service for sign up, validate data, create tokens and send verification email
+   * @param data
+   */
   async signUp(data: SignUpDto): Promise<signUpReturn> {
     const { email, password, role } = data;
     const existsUser = await this.userRepository.findByQuery({ email });
@@ -99,6 +103,11 @@ export class AuthService {
     };
   }
 
+  /**
+   * Check email and password and send tokens for sign in
+   * @param data
+   */
+
   async signIn(data: SignInDto): Promise<signInReturn> {
     const { email, password } = data;
     const user = await this.userRepository.findOneByQuery({ email });
@@ -125,6 +134,10 @@ export class AuthService {
     };
   }
 
+  /**
+   * Send email for profile activation
+   * @param data
+   */
   async sendEmail(data: { email: string; code: string }) {
     const { expiredInValue } = VerificationEntityType.verification;
 
@@ -140,6 +153,10 @@ export class AuthService {
     this.notificationsClient.emit('send_email', verificationEmailData);
   }
 
+  /**
+   * Verify account by code from the email make validations and checkings
+   * @param token
+   */
   async verifyAccount(token?: string) {
     const type = VerificationEntityType.verification.value;
     if (!token) {
@@ -179,6 +196,10 @@ export class AuthService {
     await this.verificationRepository.deleteEntity(existsToken.id);
   }
 
+  /**
+   * Check user enabled two factor or not
+   * @param userId
+   */
   async checkEnabledTwoFactor(userId: string) {
     return this.userSettingsRepository.findOneByQuery({ userId }, ['user']);
   }

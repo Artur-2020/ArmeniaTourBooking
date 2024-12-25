@@ -1,5 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
+/**
+ * Function for catch and handle errors
+ * @param error
+ */
 export default function (error: any): never {
   throw new HttpException(
     {
