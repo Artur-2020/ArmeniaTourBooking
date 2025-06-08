@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AppController } from './app.controller';
+import { HealthController } from './health/health.controller';
+import { HealthCheckService, TerminusModule } from '@nestjs/terminus';
+
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/config';
 import { GlobalHttpExceptionFilter } from './exeption-filters/http-exception.filter';
@@ -46,6 +49,7 @@ import { AuthController } from './auth/auth.controller';
         inject: [ConfigService],
       },
     ]),
+    TerminusModule,
   ],
   providers: [
     {
@@ -53,6 +57,6 @@ import { AuthController } from './auth/auth.controller';
       useClass: GlobalHttpExceptionFilter,
     },
   ],
-  controllers: [AppController, AuthController],
+  controllers: [AppController, AuthController, HealthController],
 })
 export class AppModule {}
