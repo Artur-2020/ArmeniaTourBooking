@@ -7,11 +7,13 @@ import {
 } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from './pipes/validation.pipe';
+import { AppLogger } from './utils/logger';
+import { CustomRpcExceptionFilter } from './exceptions/rpc-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
   const configService = app.get(ConfigService);
+  const logger = app.get(AppLogger);
 
   // Global ValidationPipe for HTTP server
   app.useGlobalPipes(new ValidationPipe());
@@ -35,8 +37,8 @@ async function bootstrap() {
   // Global ValidationPipe for microservice
   microserviceApp.useGlobalPipes(new ValidationPipe());
 
-  // Global filter for handling RPC exceptions
-  microserviceApp.useGlobalFilters(new BaseRpcExceptionFilter());
+  // Global filter for handling RPC exceptions with logging
+  microserviceApp.useGlobalFilters(new CustomRpcExceptionFilter());
 
   // Start microservices
   await app.startAllMicroservices();
@@ -44,9 +46,12 @@ async function bootstrap() {
   const port = configService.get<string>('port');
   // Start HTTP server after microservices
   await app.listen(port);
-  console.log(
-    `Main application and microservice are running for notifications service on port ${port}`,
-  );
+  
+  logger.log(`Notification service started successfully on port ${port}`, {
+    service: 'Notification Service',
+    port,
+    environment: process.env.NODE_ENV || 'development',
+  });
 }
 
 bootstrap();

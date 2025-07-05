@@ -1,30 +1,26 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
-import { services, validations } from '../../constants';
-import { TwoFactorRepository, VerificationRepository } from '../repositories';
-import { VerificationEntityType } from '../constants/auth';
-import changeConstantValue from '../../helpers/replaceConstantValue';
-import { BasicReturnType, SendVerificationData } from '../interfaces/auth';
-import getTimeMinuteDifference from '../../helpers/compareDatesAndGetDiff';
-import { ClientProxy } from '@nestjs/microservices';
-import { SharedService } from '../shared/shared.service';
+import { services } from '../../constants';
+import { TwoFactorRepository } from '../repositories';
+import { UserRepository } from '../../users/repsitories';
 
-const { twoFactorIsNotActive, oneTimeSignInEmailText, codeExpiredAt } =
-  services;
-const { invalidItem } = validations;
+const { twoFactorIsNotActive } = services;
 @Injectable()
 export class TwoFactorService {
   constructor(
     private readonly twoFactorRepository: TwoFactorRepository,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
-    @Inject('NOTIFICATION_SERVICE')
-    private readonly notificationsClient: ClientProxy,
-    private readonly sharedService: SharedService,
-    private readonly verificationRepository: VerificationRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   /**
@@ -81,8 +77,14 @@ export class TwoFactorService {
 
     const { otpauth_url, base32 } = secret;
 
+    // Get user email from user repository
+    const user = await this.userRepository.findOneByQuery({ id: userId });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
     await this.updateUserTwoFactor({
-      email: isTwoFactorEnabled.user.email,
+      email: user.email,
       secret: base32,
     });
     return await this.generateQRCode(otpauth_url);
@@ -122,7 +124,6 @@ export class TwoFactorService {
    * @param code
    * @param email
    */
-
   async verifyOtp({
     code,
     email,
@@ -139,59 +140,5 @@ export class TwoFactorService {
     const { st } = userTwoFactor;
 
     return this.verifyToken(code, st);
-  }
-
-  /**
-   * Function for send the one time sign in email
-   * @param data
-   */
-  async sendEmail(data: { email: string; code: string }) {
-    const { expiredInValue } = VerificationEntityType.onetimesignin;
-    const { code, email } = data;
-    const minutes = this.configService.get<string>(expiredInValue);
-
-    const text = changeConstantValue(oneTimeSignInEmailText, { code, minutes });
-    const resetPasswordEmailData: SendVerificationData = {
-      to: email,
-      subject: 'One Time Sign In',
-      text,
-    };
-    this.notificationsClient.emit('send_email', resetPasswordEmailData);
-  }
-
-  /**
-   * Verify one time sign in code from the email
-   * @param token
-   */
-  async verifyOneTimeSignInCode(
-    token?: string,
-  ): Promise<BasicReturnType<null>> {
-    const { value } = VerificationEntityType.onetimesignin;
-
-    if (!token) {
-      throw new BadRequestException(
-        changeConstantValue(invalidItem, { item: 'Code' }),
-      );
-    }
-    const existsToken =
-      await this.sharedService.checkVerificationCodeExistsOrNot(token, value);
-
-    if (!existsToken) {
-      throw new BadRequestException(
-        changeConstantValue(invalidItem, { item: 'Code' }),
-      );
-    }
-
-    const timeDif = getTimeMinuteDifference(existsToken.expiredAt);
-
-    if (timeDif < 0) {
-      throw new BadRequestException(
-        changeConstantValue(codeExpiredAt, { type: 'sign in' }),
-      );
-    }
-
-    await this.verificationRepository.deleteEntity(existsToken.id);
-
-    return { success: true };
   }
 }

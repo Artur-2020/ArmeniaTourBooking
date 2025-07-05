@@ -17,7 +17,7 @@ import { ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Verification, UserSettings]),
-    JwtModule.register({}), // Обязательно добавляем JwtModule, если используете JwtService
+    JwtModule.register({}),
   ],
   controllers: [UserController],
   providers: [

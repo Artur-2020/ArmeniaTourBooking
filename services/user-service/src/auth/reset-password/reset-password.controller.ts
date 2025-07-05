@@ -1,5 +1,4 @@
-import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { Controller, Post, Body } from '@nestjs/common';
 import {
   CreateNewPasswordDto,
   ResendVerificationDto,
@@ -7,67 +6,62 @@ import {
 } from '../dto';
 import { BasicReturnType } from '../interfaces/auth';
 import { ResetPasswordService } from './reset-password.service';
-import { VerificationEntityType } from '../constants/auth';
 import { SharedService } from '../shared/shared.service';
 
-@Controller('reset-password')
+@Controller('auth')
 export class ResetPasswordController {
   constructor(
     private readonly sharedService: SharedService,
     private readonly resetPasswordService: ResetPasswordService,
   ) {}
 
-  @MessagePattern({ cmd: 'reset_password_code' })
   /**
    * Send reset password code via email to the user
+   * Sends a password reset code to the user's email.
+   *
+   * @param data ResendVerificationDto - Contains the user's email address.
+   * @returns BasicReturnType with a response indicating success or validation error.
    */
+  @Post('send-reset-password-code')
   async sendForgetPasswordCode(
-    @Payload() data: ResendVerificationDto,
+    @Body() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
-    try {
-      const newData = {
-        ...data,
-        type: VerificationEntityType.resetpassword.value,
-      };
-      await this.sharedService.resendCode(newData, this.resetPasswordService);
-      return { success: true };
-    } catch (error) {
-      console.log('error ------------>', error);
-      throw new RpcException(error.message);
-    }
+    const newData = {
+      ...data,
+      type: 'resetpassword',
+    };
+    await this.sharedService.resendCode(newData, this.resetPasswordService);
+    return { success: true };
   }
 
   /**
    * Verify code from email for allow to go to the new password page
-   * @param data
+   * Verifies a reset password code sent to the user's email.
+   *
+   * @param data VerifyAccountDto - Contains the reset password token.
+   * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @MessagePattern({ cmd: 'verify_reset_password_code' })
+  @Post('verify-reset-password-code')
   async verifyResetPasswordCode(
-    @Payload() data: VerifyAccountDto,
+    @Body() data: VerifyAccountDto,
   ): Promise<BasicReturnType<null>> {
-    try {
-      const { token } = data;
-      await this.resetPasswordService.verifyResetPasswordCode(token);
-      return { success: true };
-    } catch (error) {
-      console.log('error ------------>', error);
-      throw new RpcException(error.message);
-    }
+    const { token } = data;
+    await this.resetPasswordService.verifyResetPasswordCode(token);
+    return { success: true };
   }
 
   /**
-   * Handler for the create new password action
-   * @param data
+   * Create new password after verification
+   * Allows a user to create a new password after verifying the reset code.
+   *
+   * @param data CreateNewPasswordDto - Contains the new password and confirmation.
+   * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @MessagePattern({ cmd: 'create_new_password' })
+  @Post('create-new-password')
   async createNewPassword(
-    @Payload() data: CreateNewPasswordDto,
+    @Body() data: CreateNewPasswordDto,
   ): Promise<BasicReturnType<null>> {
-    try {
-      return await this.resetPasswordService.createNewPassword(data);
-    } catch (error) {
-      console.log('error ------------>', error);
-      throw new RpcException(error.message);
-    }
+    await this.resetPasswordService.createNewPassword(data);
+    return { success: true };
   }
 }

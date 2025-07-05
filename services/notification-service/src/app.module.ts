@@ -7,6 +7,7 @@ import { EmailService } from './email/email.service';
 import { WebsocketService } from './websocket/websocket.service';
 import { EmailController } from './email/email.controller';
 import configuration from './config/config';
+import { AppLogger } from './utils/logger';
 
 @Module({
   imports: [
@@ -16,6 +17,6 @@ import configuration from './config/config';
     AuthModule,
   ],
   controllers: [AppController, EmailController],
-  providers: [AppService, EmailService, WebsocketService],
+  providers: [AppService, EmailService, WebsocketService, AppLogger],
 })
 export class AppModule {}
