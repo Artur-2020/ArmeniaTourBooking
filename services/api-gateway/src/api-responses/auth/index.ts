@@ -259,3 +259,74 @@ export const twoFactorResponses = {
     },
   },
 };
+
+export const refreshToken = {
+  success: {
+    status: 200,
+    description: 'Token refreshed successfully',
+    type: SuccessResponseDto,
+    schema: {
+      example: {
+        success: true,
+        status: 200,
+        message: 'Token refreshed successfully',
+        data: {
+          refreshToken: 'new_refresh_token_here',
+          accessToken: 'new_access_token_here',
+        },
+      },
+    },
+  },
+  error: {
+    status: 400,
+    description: 'Invalid refresh token',
+    type: ErrorResponseDto,
+    schema: {
+      example: {
+        error: true,
+        status: 400,
+        message: 'Invalid refresh token',
+        details: [
+          {
+            field: 'refreshToken',
+            errors: ['The refresh token is invalid or expired'],
+          },
+        ],
+      },
+    },
+  },
+};
+
+export const logout = {
+  success: {
+    status: 200,
+    description: 'Logout successful',
+    type: SuccessResponseDto,
+    schema: {
+      example: {
+        success: true,
+        status: 200,
+        message: 'Logout successful',
+        data: null,
+      },
+    },
+  },
+  error: {
+    status: 400,
+    description: 'Invalid refresh token',
+    type: ErrorResponseDto,
+    schema: {
+      example: {
+        error: true,
+        status: 400,
+        message: 'Invalid refresh token',
+        details: [
+          {
+            field: 'refreshToken',
+            errors: ['The refresh token is invalid'],
+          },
+        ],
+      },
+    },
+  },
+};

@@ -6,6 +6,8 @@ import {
   ResendVerificationDto,
   VerifyAccountDto,
   VerifyOneTimeSignInDto,
+  RefreshTokenDto,
+  LogoutDto,
 } from '../auth/dto';
 import { signUpReturn, signInReturn, BasicReturnType } from './interfaces/auth';
 import { AuthService } from './auth.service';
@@ -130,6 +132,36 @@ export class AuthController {
     @Body() data: VerifyOneTimeSignInDto,
   ): Promise<BasicReturnType<null>> {
     await this.authService.verifyOneTimeSignInCode(data.token);
+    return { success: true };
+  }
+
+  /**
+   * Refresh access token
+   * Refreshes the access token using a valid refresh token.
+   *
+   * @param data RefreshTokenDto - Contains the refresh token.
+   * @returns BasicReturnType with new access and refresh tokens.
+   */
+  @Post('refresh-token')
+  async refreshToken(
+    @Body() data: RefreshTokenDto,
+  ): Promise<BasicReturnType<signInReturn>> {
+    const returnData = await this.authService.refreshToken(data.refreshToken);
+    return { success: true, data: returnData };
+  }
+
+  /**
+   * Logout user
+   * Invalidates the refresh token to log out the user.
+   *
+   * @param data LogoutDto - Contains the refresh token to invalidate.
+   * @returns BasicReturnType with a response indicating success.
+   */
+  @Post('logout')
+  async logout(
+    @Body() data: LogoutDto,
+  ): Promise<BasicReturnType<null>> {
+    await this.authService.logout(data.refreshToken);
     return { success: true };
   }
 }

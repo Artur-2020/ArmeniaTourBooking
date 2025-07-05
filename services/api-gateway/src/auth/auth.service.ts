@@ -9,6 +9,8 @@ import {
   TokenDto,
   CreatePasswordDTO,
   VerifyOtpDTO,
+  RefreshTokenDTO,
+  LogoutDTO,
 } from '../dtos';
 import {
   BasicReturnType,
@@ -255,6 +257,36 @@ export class AuthService {
     } catch (error) {
       this.logger.error('VerifyOneTimeSignInCode failed', error?.stack, {
         token: '[REDACTED]',
+      });
+      throw error;
+    }
+  }
+
+  async refreshToken(data: RefreshTokenDTO): Promise<BasicReturnType<signInReturn>> {
+    try {
+      return await this.makeServiceCall<BasicReturnType<signInReturn>>(
+        'POST',
+        '/auth/refresh-token',
+        data,
+      );
+    } catch (error) {
+      this.logger.error('RefreshToken failed', error?.stack, {
+        refreshToken: '[REDACTED]',
+      });
+      throw error;
+    }
+  }
+
+  async logout(data: LogoutDTO): Promise<BasicReturnType<null>> {
+    try {
+      return await this.makeServiceCall<BasicReturnType<null>>(
+        'POST',
+        '/auth/logout',
+        data,
+      );
+    } catch (error) {
+      this.logger.error('Logout failed', error?.stack, {
+        refreshToken: '[REDACTED]',
       });
       throw error;
     }

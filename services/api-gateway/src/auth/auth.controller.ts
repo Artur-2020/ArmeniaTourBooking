@@ -7,6 +7,8 @@ import {
   SignUpDTO,
   TokenDto,
   VerifyOtpDTO,
+  RefreshTokenDTO,
+  LogoutDTO,
 } from '../dtos';
 import {
   BasicReturnType,
@@ -22,6 +24,8 @@ import {
   createPassword,
   twoFactorResponses,
   commonResponses,
+  refreshToken,
+  logout,
 } from '../api-responses/auth';
 import { AuthService } from './auth.service';
 
@@ -210,5 +214,39 @@ export class AuthController {
     @Body() dto: TokenDto,
   ): Promise<BasicReturnType<null>> {
     return this.authService.verifyOneTimeSignInCode(dto);
+  }
+
+  /**
+   * Refresh Token Endpoint
+   * Refreshes the access token using a valid refresh token.
+   *
+   * @param data RefreshTokenDTO - Contains the refresh token.
+   * @returns BasicReturnType with new access and refresh tokens.
+   */
+  @Post('refresh-token')
+  @ApiOperation({ summary: 'Refresh Token' })
+  @ApiResponse(refreshToken.success)
+  @ApiResponse(refreshToken.error)
+  async refreshToken(
+    @Body() data: RefreshTokenDTO,
+  ): Promise<BasicReturnType<signInReturn>> {
+    return this.authService.refreshToken(data);
+  }
+
+  /**
+   * Logout Endpoint
+   * Invalidates the refresh token to log out the user.
+   *
+   * @param data LogoutDTO - Contains the refresh token to invalidate.
+   * @returns BasicReturnType with a response indicating success.
+   */
+  @Post('logout')
+  @ApiOperation({ summary: 'Logout' })
+  @ApiResponse(logout.success)
+  @ApiResponse(logout.error)
+  async logout(
+    @Body() data: LogoutDTO,
+  ): Promise<BasicReturnType<null>> {
+    return this.authService.logout(data);
   }
 }

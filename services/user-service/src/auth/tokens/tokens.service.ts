@@ -53,4 +53,45 @@ export class TokensService {
 
     return { accessToken, refreshToken };
   }
+
+  /**
+   * Verify refresh token and extract payload
+   * @param refreshToken
+   */
+  verifyRefreshToken(refreshToken: string): jwtPayload {
+    try {
+      return this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('refreshTokenSecret'),
+      });
+    } catch (error) {
+      throw new Error('Invalid refresh token');
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   * @param refreshToken
+   * @param userId
+   * @param role
+   */
+  refreshAccessToken(
+    refreshToken: string,
+    userId: string,
+    role: string,
+  ): { accessToken: string; refreshToken: string } {
+    // Verify the refresh token
+    const payload = this.verifyRefreshToken(refreshToken);
+    
+    // Generate new tokens
+    const newAccessToken = this.generateAccessToken({
+      userId,
+      role,
+    });
+    const newRefreshToken = this.generateRefreshToken({
+      userId,
+      role,
+    });
+
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+  }
 }

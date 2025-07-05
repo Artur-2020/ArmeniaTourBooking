@@ -1,11 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import {
   UserSettingsRepository,
   VerificationRepository,
 } from '../auth/repositories';
-import { UserSettings } from './entities';
 import { VerificationEntityType } from './constants/auth';
 import { UserRepository } from '../users/repsitories';
 import { ConfigService } from '@nestjs/config';
@@ -72,9 +69,13 @@ export class AuthService {
       const existsUser = await this.userRepository.findByQuery({ email });
 
       if (!!existsUser.length) {
-        this.logger.error('User registration failed - email already exists', undefined, {
-          email,
-        });
+        this.logger.error(
+          'User registration failed - email already exists',
+          undefined,
+          {
+            email,
+          },
+        );
         throw new BadRequestException(
           changeConstantValue(userExistsByEmail, { email }),
         );
@@ -165,7 +166,7 @@ export class AuthService {
         throw new BadRequestException(InvalidDataForLogin);
       }
 
-      const { password: up, id: userId, role, refreshToken } = user;
+      const { password: up, id: userId, role } = user;
 
       if (!user.activatedAt) {
         this.logger.error('Sign in failed - account not activated', undefined, {
@@ -185,10 +186,15 @@ export class AuthService {
         throw new BadRequestException(InvalidDataForLogin);
       }
 
-      const accessToken = this.tokensService.generateAccessToken({
-        userId,
-        role,
-      });
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } =
+        this.tokensService.generateTokens(userId, role);
+
+      // Update refresh token in database
+      await this.userRepository.updateEntity(
+        { id: userId },
+        { refreshToken: newRefreshToken },
+      );
 
       const duration = Date.now() - startTime;
       this.logger.log('User sign in completed successfully', {
@@ -199,7 +205,7 @@ export class AuthService {
 
       return {
         accessToken,
-        refreshToken,
+        refreshToken: newRefreshToken,
       };
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -226,7 +232,10 @@ export class AuthService {
       });
 
       const minutes = this.configService.get<string>(expiredInValue);
-      const text = changeConstantValue(verificationEmailText, { code, minutes });
+      const text = changeConstantValue(verificationEmailText, {
+        code,
+        minutes,
+      });
       const verificationEmailData: SendVerificationData = {
         to: email,
         subject: 'Account Verification',
@@ -236,17 +245,33 @@ export class AuthService {
       this.notificationsClient.emit('send_email', verificationEmailData);
 
       const duration = Date.now() - startTime;
-      this.logger.logRpcCall('NotificationService', 'send_email', 200, duration, {
-        email,
-        subject: 'Account Verification',
-      });
+      this.logger.logRpcCall(
+        'NotificationService',
+        'send_email',
+        200,
+        duration,
+        {
+          email,
+          subject: 'Account Verification',
+        },
+      );
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.logger.logRpcCall('NotificationService', 'send_email', 500, duration, {
-        email,
-        error: error?.message,
-      });
-      throw ErrorHandler.handleRpcError(error, 'NotificationService', 'send_email');
+      this.logger.logRpcCall(
+        'NotificationService',
+        'send_email',
+        500,
+        duration,
+        {
+          email,
+          error: error?.message,
+        },
+      );
+      throw ErrorHandler.handleRpcError(
+        error,
+        'NotificationService',
+        'send_email',
+      );
     }
   }
 
@@ -264,7 +289,10 @@ export class AuthService {
 
       const type = VerificationEntityType.verification.value;
       if (!token) {
-        this.logger.error('Account verification failed - no token provided', undefined);
+        this.logger.error(
+          'Account verification failed - no token provided',
+          undefined,
+        );
         throw new BadRequestException(
           changeConstantValue(invalidItem, { item: 'Code' }),
         );
@@ -274,9 +302,13 @@ export class AuthService {
         await this.sharedService.checkVerificationCodeExistsOrNot(token, type);
 
       if (!existsToken) {
-        this.logger.error('Account verification failed - invalid token', undefined, {
-          token: '[REDACTED]',
-        });
+        this.logger.error(
+          'Account verification failed - invalid token',
+          undefined,
+          {
+            token: '[REDACTED]',
+          },
+        );
         throw new BadRequestException(
           changeConstantValue(invalidItem, { item: 'Code' }),
         );
@@ -287,19 +319,27 @@ export class AuthService {
       });
 
       if (existsUser.activatedAt) {
-        this.logger.error('Account verification failed - account already activated', undefined, {
-          email: existsToken.email,
-        });
+        this.logger.error(
+          'Account verification failed - account already activated',
+          undefined,
+          {
+            email: existsToken.email,
+          },
+        );
         throw new BadRequestException(accountIsActive);
       }
 
       const timeDif = getTimeMinuteDifference(existsToken.expiredAt);
 
       if (timeDif < 0) {
-        this.logger.error('Account verification failed - code expired', undefined, {
-          email: existsToken.email,
-          expiredAt: existsToken.expiredAt,
-        });
+        this.logger.error(
+          'Account verification failed - code expired',
+          undefined,
+          {
+            email: existsToken.email,
+            expiredAt: existsToken.expiredAt,
+          },
+        );
         throw new BadRequestException(
           changeConstantValue(codeExpiredAt, { type }),
         );
@@ -341,7 +381,10 @@ export class AuthService {
 
       const type = VerificationEntityType.onetimesignin.value;
       if (!token) {
-        this.logger.error('One-time sign in verification failed - no token provided', undefined);
+        this.logger.error(
+          'One-time sign in verification failed - no token provided',
+          undefined,
+        );
         throw new BadRequestException(
           changeConstantValue(invalidItem, { item: 'Code' }),
         );
@@ -351,9 +394,13 @@ export class AuthService {
         await this.sharedService.checkVerificationCodeExistsOrNot(token, type);
 
       if (!existsToken) {
-        this.logger.error('One-time sign in verification failed - invalid token', undefined, {
-          token: '[REDACTED]',
-        });
+        this.logger.error(
+          'One-time sign in verification failed - invalid token',
+          undefined,
+          {
+            token: '[REDACTED]',
+          },
+        );
         throw new BadRequestException(
           changeConstantValue(invalidItem, { item: 'Code' }),
         );
@@ -362,10 +409,14 @@ export class AuthService {
       const timeDif = getTimeMinuteDifference(existsToken.expiredAt);
 
       if (timeDif < 0) {
-        this.logger.error('One-time sign in verification failed - code expired', undefined, {
-          email: existsToken.email,
-          expiredAt: existsToken.expiredAt,
-        });
+        this.logger.error(
+          'One-time sign in verification failed - code expired',
+          undefined,
+          {
+            email: existsToken.email,
+            expiredAt: existsToken.expiredAt,
+          },
+        );
         throw new BadRequestException(
           changeConstantValue(codeExpiredAt, { type }),
         );
@@ -414,7 +465,10 @@ export class AuthService {
       });
 
       const minutes = this.configService.get<string>(expiredInValue);
-      const text = changeConstantValue(oneTimeSignInEmailText, { code, minutes });
+      const text = changeConstantValue(oneTimeSignInEmailText, {
+        code,
+        minutes,
+      });
       const oneTimeSigninData: SendVerificationData = {
         to: email,
         subject: 'One Time Sign In',
@@ -424,17 +478,174 @@ export class AuthService {
       this.notificationsClient.emit('send_email', oneTimeSigninData);
 
       const duration = Date.now() - startTime;
-      this.logger.logRpcCall('NotificationService', 'send_email', 200, duration, {
-        email,
-        subject: 'One Time Sign In',
+      this.logger.logRpcCall(
+        'NotificationService',
+        'send_email',
+        200,
+        duration,
+        {
+          email,
+          subject: 'One Time Sign In',
+        },
+      );
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.logRpcCall(
+        'NotificationService',
+        'send_email',
+        500,
+        duration,
+        {
+          email,
+          error: error?.message,
+        },
+      );
+      throw ErrorHandler.handleRpcError(
+        error,
+        'NotificationService',
+        'send_email',
+      );
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   * @param refreshToken
+   */
+  async refreshToken(refreshToken: string): Promise<signInReturn> {
+    const startTime = Date.now();
+
+    try {
+      this.logger.log('Starting token refresh process', {
+        refreshToken: '[REDACTED]',
+      });
+
+      // Verify the refresh token
+      const payload = this.tokensService.verifyRefreshToken(refreshToken);
+
+      // Find user by ID from token payload
+      const user = await this.userRepository.findOneByQuery({
+        id: payload.userId,
+      });
+
+      if (!user) {
+        this.logger.error('Token refresh failed - user not found', undefined, {
+          userId: payload.userId,
+        });
+        throw new BadRequestException('Invalid refresh token');
+      }
+
+      // Check if the stored refresh token matches the provided one
+      if (user.refreshToken !== refreshToken) {
+        this.logger.error(
+          'Token refresh failed - refresh token mismatch',
+          undefined,
+          {
+            userId: payload.userId,
+          },
+        );
+        throw new BadRequestException('Invalid refresh token');
+      }
+
+      // Check if account is activated
+      if (!user.activatedAt) {
+        this.logger.error(
+          'Token refresh failed - account not activated',
+          undefined,
+          {
+            userId: payload.userId,
+          },
+        );
+        throw new BadRequestException('Account not activated');
+      }
+
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } =
+        this.tokensService.refreshAccessToken(
+          refreshToken,
+          payload.userId,
+          payload.role,
+        );
+
+      // Update the refresh token in database
+      await this.userRepository.updateEntity(
+        { id: payload.userId },
+        { refreshToken: newRefreshToken },
+      );
+
+      const duration = Date.now() - startTime;
+      this.logger.log('Token refresh completed successfully', {
+        userId: payload.userId,
+        duration,
+      });
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error('Token refresh failed', error?.stack, {
+        refreshToken: '[REDACTED]',
+        duration,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Logout user by invalidating refresh token
+   * @param refreshToken
+   */
+  async logout(refreshToken: string): Promise<void> {
+    const startTime = Date.now();
+
+    try {
+      this.logger.log('Starting logout process', {
+        refreshToken: '[REDACTED]',
+      });
+
+      // Verify the refresh token to get user ID
+      const payload = this.tokensService.verifyRefreshToken(refreshToken);
+
+      // Find user by ID from token payload
+      const user = await this.userRepository.findOneByQuery({
+        id: payload.userId,
+      });
+
+      if (!user) {
+        this.logger.error('Logout failed - user not found', undefined, {
+          userId: payload.userId,
+        });
+        throw new BadRequestException('Invalid refresh token');
+      }
+
+      // Check if the stored refresh token matches the provided one
+      if (user.refreshToken !== refreshToken) {
+        this.logger.error('Logout failed - refresh token mismatch', undefined, {
+          userId: payload.userId,
+        });
+        throw new BadRequestException('Invalid refresh token');
+      }
+
+      // Invalidate refresh token by setting it to null
+      await this.userRepository.updateEntity(
+        { id: payload.userId },
+        { refreshToken: null },
+      );
+
+      const duration = Date.now() - startTime;
+      this.logger.log('Logout completed successfully', {
+        userId: payload.userId,
+        duration,
       });
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.logger.logRpcCall('NotificationService', 'send_email', 500, duration, {
-        email,
-        error: error?.message,
+      this.logger.error('Logout failed', error?.stack, {
+        refreshToken: '[REDACTED]',
+        duration,
       });
-      throw ErrorHandler.handleRpcError(error, 'NotificationService', 'send_email');
+      throw error;
     }
   }
 }
