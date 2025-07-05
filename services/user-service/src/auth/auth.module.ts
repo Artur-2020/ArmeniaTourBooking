@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/entities';
@@ -41,7 +41,7 @@ import { TokensService } from './tokens/tokens.service';
   ],
   controllers: [AuthController, ResetPasswordController, TwoFactorController],
   providers: [
-    AuthService,
+    AuthService, // Revert to simple provider definition
     {
       provide: APP_FILTER,
       useClass: RpcExceptionFilter,
@@ -53,6 +53,11 @@ import { TokensService } from './tokens/tokens.service';
     UserSettingsRepository,
     TwoFactorRepository,
   ],
-  exports: [AuthService, AuthModule],
+  exports: [
+    AuthService,
+    TwoFactorService,
+    UserSettingsRepository,
+    TwoFactorRepository,
+  ],
 })
 export class AuthModule {}

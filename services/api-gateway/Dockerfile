@@ -2,6 +2,9 @@ FROM node:20.15
 
 WORKDIR /app
 
+# Install Nest CLI globally
+RUN npm install -g @nestjs/cli
+
 COPY package*.json ./
 
 RUN npm install

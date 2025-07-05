@@ -1,5 +1,4 @@
-import { Body, Controller, Inject, Patch, Post } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { Body, Controller, Post, Patch } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CreatePasswordDTO,
@@ -15,7 +14,6 @@ import {
   signInReturn,
   signUpReturn,
 } from '../interfaces';
-import CatchError from '../utils/catch-error';
 import {
   verifyAccount,
   signIn,
@@ -25,13 +23,12 @@ import {
   twoFactorResponses,
   commonResponses,
 } from '../api-responses/auth';
+import { AuthService } from './auth.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    @Inject('USER_SERVICE') private readonly usersClient: ClientProxy,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   /**
    * User Registration Endpoint
@@ -47,11 +44,7 @@ export class AuthController {
   async signUp(
     @Body() data: SignUpDTO,
   ): Promise<BasicReturnType<signUpReturn>> {
-    try {
-      return await this.usersClient.send({ cmd: 'sign_up' }, data).toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.signUp(data);
   }
 
   /**
@@ -68,11 +61,7 @@ export class AuthController {
   async signIn(
     @Body() data: SignInDTO,
   ): Promise<BasicReturnType<signInReturn>> {
-    try {
-      return await this.usersClient.send({ cmd: 'sign_in' }, data).toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.signIn(data);
   }
 
   /**
@@ -87,13 +76,7 @@ export class AuthController {
   @ApiResponse(verifyAccount.success)
   @ApiResponse(verifyAccount.error)
   async verifyAccount(@Body() dto: TokenDto): Promise<BasicReturnType<null>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'verify_account' }, { token: dto.token })
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.verifyAccount(dto);
   }
 
   /**
@@ -110,13 +93,7 @@ export class AuthController {
   async verifyResetPasswordCode(
     @Body() dto: TokenDto,
   ): Promise<BasicReturnType<null>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'verify_reset_password_code' }, { token: dto.token })
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.verifyResetPasswordCode(dto);
   }
 
   /**
@@ -133,13 +110,7 @@ export class AuthController {
   async resendVerificationToken(
     @Body() dto: EmailDto,
   ): Promise<BasicReturnType<null>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'resend_verification_code' }, { email: dto.email })
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.resendVerificationToken(dto);
   }
 
   /**
@@ -156,13 +127,7 @@ export class AuthController {
   async sendResetPasswordCode(
     @Body() dto: EmailDto,
   ): Promise<BasicReturnType<null>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'reset_password_code' }, { email: dto.email })
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.sendResetPasswordCode(dto);
   }
 
   /**
@@ -179,13 +144,7 @@ export class AuthController {
   async createNewPassword(
     @Body() data: CreatePasswordDTO,
   ): Promise<BasicReturnType<null>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'create_new_password' }, data)
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.createNewPassword(data);
   }
 
   /**
@@ -199,13 +158,7 @@ export class AuthController {
   @ApiResponse(twoFactorResponses.generateQr.success)
   @ApiResponse(twoFactorResponses.generateQr.error)
   async generateQrCode(): Promise<BasicReturnType<generateQrReturn>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'generate-qr-code' }, {})
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.generateQrCode();
   }
 
   /**
@@ -222,13 +175,7 @@ export class AuthController {
   async verifyOTP(
     @Body() data: VerifyOtpDTO,
   ): Promise<BasicReturnType<{ verified: boolean }>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'verify_otp' }, data)
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.verifyOTP(data);
   }
 
   /**
@@ -238,19 +185,30 @@ export class AuthController {
    * @param dto EmailDto - Contains the user's email address.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('two-factor/one-time-signin-code')
+  @Post('one-time-signin-code')
   @ApiOperation({ summary: 'Send One-Time Sign-In Code' })
   @ApiResponse(commonResponses.success)
   @ApiResponse(commonResponses.error)
   async sendOneTimeSignInCode(
     @Body() dto: EmailDto,
   ): Promise<BasicReturnType<null>> {
-    try {
-      return await this.usersClient
-        .send({ cmd: 'one-time-sign-in-code' }, { email: dto.email })
-        .toPromise();
-    } catch (error) {
-      CatchError(error);
-    }
+    return this.authService.sendOneTimeSignInCode(dto);
+  }
+
+  /**
+   * Verify One-Time Sign-In Code Endpoint
+   * Verifies a one-time sign-in code sent to the user's email.
+   *
+   * @param dto TokenDto - Contains the one-time sign-in token.
+   * @returns BasicReturnType with a response indicating success or validation error.
+   */
+  @Post('verify-one-time-signin-code')
+  @ApiOperation({ summary: 'Verify One-Time Sign-In Code' })
+  @ApiResponse(commonResponses.success)
+  @ApiResponse(commonResponses.error)
+  async verifyOneTimeSignInCode(
+    @Body() dto: TokenDto,
+  ): Promise<BasicReturnType<null>> {
+    return this.authService.verifyOneTimeSignInCode(dto);
   }
 }

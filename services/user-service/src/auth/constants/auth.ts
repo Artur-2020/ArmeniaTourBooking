@@ -7,19 +7,19 @@ export enum VerificationEntityTypeEnum {
 export const VerificationEntityType = {
   resetpassword: {
     blockedInValue: 'resetPasswordBlockMinutes',
-    value: 'resetpassword',
+    value: VerificationEntityTypeEnum.RESETPASSWORD,
     expiredInValue: 'resetPasswordExpiredIn',
-    count: 5,
+    count: 3,
   },
   verification: {
     blockedInValue: 'accountVerificationBlockMinutes',
-    value: 'verification',
+    value: VerificationEntityTypeEnum.VERIFY_ACCOUNT,
     count: 3,
     expiredInValue: 'accountVerificationExpiredIn',
   },
   onetimesignin: {
-    value: 'onetimesignin',
-    count: 5,
+    value: VerificationEntityTypeEnum.ONE_TIME_SIGN_IN,
+    count: 3,
     blockedInValue: 'oneTimeSignInBlockMinutes',
     expiredInValue: 'oneTimeSignInExpiredIn',
   },

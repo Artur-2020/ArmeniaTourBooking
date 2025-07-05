@@ -51,12 +51,14 @@ export class SharedService {
    * Generates a new code if necessary and sends it via the specified service.
    * @param data - The data containing user email and verification type.
    * @param service - The service responsible for sending the verification email.
-   * @throws NotFoundException if the user account does not exist.
-   * @throws BadRequestException if the user account is already active.
+   * @param functionName - For case if there is specific function to call
+   * @throws NotFoundException - If the user account does not exist.
+   * @throws BadRequestException - If the user account is already active.
    */
   async resendCode(
     data: ResendCodeDTO,
     service: AuthService | ResetPasswordService | TwoFactorService,
+    functionName: string | null = null,
   ) {
     const { email, type } = data;
     const { expiredInValue } = VerificationEntityType[type];
@@ -70,7 +72,8 @@ export class SharedService {
           item: 'account with this email address',
         }),
       );
-    } else if (existsAccount.activatedAt) {
+      // If it email for verification
+    } else if (service instanceof AuthService && existsAccount.activatedAt) {
       throw new BadRequestException(accountIsActive);
     }
 
@@ -110,7 +113,13 @@ export class SharedService {
     }
 
     // Send Verification Email
-    await service.sendEmail({ email, code: newCode });
+    if (functionName) {
+      await service[functionName]({ email, code: newCode });
+    } else {
+      if (!(service instanceof TwoFactorService)) {
+        await service.sendEmail({ email, code: newCode });
+      }
+    }
   }
 
   /**
