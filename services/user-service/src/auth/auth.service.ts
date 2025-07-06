@@ -532,7 +532,9 @@ export class AuthService {
         this.logger.error('Token refresh failed - user not found', undefined, {
           userId: payload.userId,
         });
-        throw new BadRequestException('Invalid refresh token');
+        throw new BadRequestException(
+          changeConstantValue(invalidItem, { item: 'refresh token' }),
+        );
       }
 
       // Check if the stored refresh token matches the provided one
@@ -544,7 +546,9 @@ export class AuthService {
             userId: payload.userId,
           },
         );
-        throw new BadRequestException('Invalid refresh token');
+        throw new BadRequestException(
+          changeConstantValue(invalidItem, { item: 'refresh token' }),
+        );
       }
 
       // Check if account is activated
@@ -556,7 +560,7 @@ export class AuthService {
             userId: payload.userId,
           },
         );
-        throw new BadRequestException('Account not activated');
+        throw new BadRequestException(accountNotActive);
       }
 
       // Generate new tokens
@@ -617,7 +621,9 @@ export class AuthService {
         this.logger.error('Logout failed - user not found', undefined, {
           userId: payload.userId,
         });
-        throw new BadRequestException('Invalid refresh token');
+        throw new BadRequestException(
+          changeConstantValue(invalidItem, { item: 'refresh token' }),
+        );
       }
 
       // Check if the stored refresh token matches the provided one
@@ -625,7 +631,9 @@ export class AuthService {
         this.logger.error('Logout failed - refresh token mismatch', undefined, {
           userId: payload.userId,
         });
-        throw new BadRequestException('Invalid refresh token');
+        throw new BadRequestException(
+          changeConstantValue(invalidItem, { item: 'refresh token' }),
+        );
       }
 
       // Invalidate refresh token by setting it to null

@@ -25,11 +25,15 @@ export class AppLogger implements LoggerService {
     this.context = context;
   }
 
-  private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
+  private formatMessage(
+    level: LogLevel,
+    message: string,
+    context?: LogContext,
+  ): string {
     const timestamp = new Date().toISOString();
     const contextStr = this.context ? `[${this.context}]` : '';
     const additionalContext = context ? ` ${JSON.stringify(context)}` : '';
-    
+
     return `${timestamp} ${level.toUpperCase()} ${contextStr} ${message}${additionalContext}`;
   }
 
@@ -57,18 +61,35 @@ export class AppLogger implements LoggerService {
   }
 
   // Specialized logging methods for different scenarios
-  logHttpRequest(method: string, url: string, statusCode: number, duration: number, context?: LogContext) {
+  logHttpRequest(
+    method: string,
+    url: string,
+    statusCode: number,
+    duration: number,
+    context?: LogContext,
+  ) {
     const level = statusCode >= 400 ? LogLevel.ERROR : LogLevel.INFO;
     const message = `${method} ${url} - ${statusCode} (${duration}ms)`;
     console.log(this.formatMessage(level, message, context));
   }
 
-  logDatabaseOperation(operation: string, table: string, duration: number, context?: LogContext) {
+  logDatabaseOperation(
+    operation: string,
+    table: string,
+    duration: number,
+    context?: LogContext,
+  ) {
     const message = `Database ${operation} on ${table} - ${duration}ms`;
     console.log(this.formatMessage(LogLevel.INFO, message, context));
   }
 
-  logRpcCall(service: string, method: string, statusCode: number, duration: number, context?: LogContext) {
+  logRpcCall(
+    service: string,
+    method: string,
+    statusCode: number,
+    duration: number,
+    context?: LogContext,
+  ) {
     const level = statusCode >= 400 ? LogLevel.ERROR : LogLevel.INFO;
     const message = `RPC call: ${service}.${method} - ${statusCode} (${duration}ms)`;
     console.log(this.formatMessage(level, message, context));
@@ -94,4 +115,4 @@ export class AppLogger implements LoggerService {
       error: error?.message,
     });
   }
-} 
+}

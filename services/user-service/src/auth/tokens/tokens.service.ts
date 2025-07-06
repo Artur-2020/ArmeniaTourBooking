@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { jwtPayload } from '../interfaces/auth';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import changeConstantValue from '../../helpers/replaceConstantValue';
+import { validations } from '../../constants';
+const { invalidItem } = validations;
 
 @Injectable()
 export class TokensService {
@@ -64,7 +67,9 @@ export class TokensService {
         secret: this.configService.get<string>('refreshTokenSecret'),
       });
     } catch (error) {
-      throw new Error('Invalid refresh token');
+      throw new Error(
+        changeConstantValue(invalidItem, { item: 'refresh token' }),
+      );
     }
   }
 
@@ -80,8 +85,8 @@ export class TokensService {
     role: string,
   ): { accessToken: string; refreshToken: string } {
     // Verify the refresh token
-    const payload = this.verifyRefreshToken(refreshToken);
-    
+    this.verifyRefreshToken(refreshToken);
+
     // Generate new tokens
     const newAccessToken = this.generateAccessToken({
       userId,

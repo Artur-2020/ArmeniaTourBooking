@@ -158,9 +158,7 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating success.
    */
   @Post('logout')
-  async logout(
-    @Body() data: LogoutDto,
-  ): Promise<BasicReturnType<null>> {
+  async logout(@Body() data: LogoutDto): Promise<BasicReturnType<null>> {
     await this.authService.logout(data.refreshToken);
     return { success: true };
   }
