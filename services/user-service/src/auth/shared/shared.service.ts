@@ -73,7 +73,11 @@ export class SharedService {
         }),
       );
       // If it email for verification
-    } else if (service instanceof AuthService && existsAccount.activatedAt) {
+    } else if (
+      service instanceof AuthService &&
+      !functionName &&
+      existsAccount.activatedAt
+    ) {
       throw new BadRequestException(accountIsActive);
     }
 

@@ -92,10 +92,10 @@ export class AuthController {
   @Post('verify-account')
   async verifyAccount(
     @Body() data: VerifyAccountDto,
-  ): Promise<BasicReturnType<null>> {
+  ): Promise<BasicReturnType<signInReturn>> {
     const { token } = data;
-    await this.authService.verifyAccount(token);
-    return { success: true };
+    const returnData = await this.authService.verifyAccount(token);
+    return { success: true, data: returnData };
   }
 
   /**
@@ -105,7 +105,7 @@ export class AuthController {
    * @param data ResendVerificationDto - Contains the user's email.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('one-time-signin-code')
+  @Post('one-time-sign-in/code')
   async sendOneTimeSignInCode(
     @Body() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -127,12 +127,14 @@ export class AuthController {
    * @param data VerifyOptDto - Contains the user's email and OTP code.
    * @returns BasicReturnType with a response indicating whether the OTP was verified.
    */
-  @Post('verify-one-time-signin-code')
+  @Post('one-time-sign-in/verify')
   async verifyOneTimeSignIn(
     @Body() data: VerifyOneTimeSignInDto,
-  ): Promise<BasicReturnType<null>> {
-    await this.authService.verifyOneTimeSignInCode(data.token);
-    return { success: true };
+  ): Promise<BasicReturnType<signInReturn>> {
+    const returnData = await this.authService.verifyOneTimeSignInCode(
+      data.token,
+    );
+    return { success: true, data: returnData };
   }
 
   /**

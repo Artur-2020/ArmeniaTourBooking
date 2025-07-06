@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Patch } from '@nestjs/common';
 import {
   CreateNewPasswordDto,
   ResendVerificationDto,
@@ -8,7 +8,7 @@ import { BasicReturnType } from '../interfaces/auth';
 import { ResetPasswordService } from './reset-password.service';
 import { SharedService } from '../shared/shared.service';
 
-@Controller('auth')
+@Controller('auth/reset-password')
 export class ResetPasswordController {
   constructor(
     private readonly sharedService: SharedService,
@@ -22,7 +22,7 @@ export class ResetPasswordController {
    * @param data ResendVerificationDto - Contains the user's email address.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('send-reset-password-code')
+  @Post('code')
   async sendForgetPasswordCode(
     @Body() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -41,7 +41,7 @@ export class ResetPasswordController {
    * @param data VerifyAccountDto - Contains the reset password token.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('verify-reset-password-code')
+  @Post('verify')
   async verifyResetPasswordCode(
     @Body() data: VerifyAccountDto,
   ): Promise<BasicReturnType<null>> {
@@ -57,7 +57,7 @@ export class ResetPasswordController {
    * @param data CreateNewPasswordDto - Contains the new password and confirmation.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('create-new-password')
+  @Patch('create')
   async createNewPassword(
     @Body() data: CreateNewPasswordDto,
   ): Promise<BasicReturnType<null>> {

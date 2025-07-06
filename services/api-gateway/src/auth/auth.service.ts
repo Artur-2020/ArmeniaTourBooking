@@ -55,10 +55,16 @@ export class AuthService {
       );
 
       const duration = Date.now() - startTime;
-      this.logger.logServiceCall('UserService', method, response.status, duration, {
-        endpoint,
-        responseSize: JSON.stringify(response.data).length,
-      });
+      this.logger.logServiceCall(
+        'UserService',
+        method,
+        response.status,
+        duration,
+        {
+          endpoint,
+          responseSize: JSON.stringify(response.data).length,
+        },
+      );
 
       return response.data;
     } catch (error) {
@@ -78,9 +84,9 @@ export class AuthService {
 
   private sanitizeData(data: any): any {
     if (!data) return data;
-    
+
     const sanitized = { ...data };
-    
+
     // Remove sensitive fields for logging
     if (sanitized.password) {
       sanitized.password = '[REDACTED]';
@@ -91,7 +97,7 @@ export class AuthService {
     if (sanitized.token) {
       sanitized.token = '[REDACTED]';
     }
-    
+
     return sanitized;
   }
 
@@ -145,7 +151,7 @@ export class AuthService {
     try {
       return await this.makeServiceCall<BasicReturnType<null>>(
         'POST',
-        '/auth/verify-reset-password-code',
+        '/auth/reset-password/verify',
         dto,
       );
     } catch (error) {
@@ -175,7 +181,7 @@ export class AuthService {
     try {
       return await this.makeServiceCall<BasicReturnType<null>>(
         'POST',
-        '/auth/send-reset-password-code',
+        '/auth/reset-password/code',
         dto,
       );
     } catch (error) {
@@ -192,7 +198,7 @@ export class AuthService {
     try {
       return await this.makeServiceCall<BasicReturnType<null>>(
         'PATCH',
-        '/auth/create-new-password',
+        '/auth/reset-password/create',
         data,
       );
     } catch (error) {
@@ -232,11 +238,13 @@ export class AuthService {
     }
   }
 
-  async sendOneTimeSignInCode(dto: EmailDto): Promise<BasicReturnType<null>> {
+  async sendOneTimeSignInCode(
+    dto: EmailDto,
+  ): Promise<BasicReturnType<signInReturn>> {
     try {
-      return await this.makeServiceCall<BasicReturnType<null>>(
+      return await this.makeServiceCall<BasicReturnType<signInReturn>>(
         'POST',
-        '/auth/one-time-signin-code',
+        '/auth/one-time-sign-in/code',
         dto,
       );
     } catch (error) {
@@ -251,7 +259,7 @@ export class AuthService {
     try {
       return await this.makeServiceCall<BasicReturnType<null>>(
         'POST',
-        '/auth/one-time-signin-code',
+        '/auth/one-time-sign-in/verify',
         dto,
       );
     } catch (error) {
@@ -262,7 +270,9 @@ export class AuthService {
     }
   }
 
-  async refreshToken(data: RefreshTokenDTO): Promise<BasicReturnType<signInReturn>> {
+  async refreshToken(
+    data: RefreshTokenDTO,
+  ): Promise<BasicReturnType<signInReturn>> {
     try {
       return await this.makeServiceCall<BasicReturnType<signInReturn>>(
         'POST',

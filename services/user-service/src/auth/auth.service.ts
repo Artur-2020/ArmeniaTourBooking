@@ -357,6 +357,21 @@ export class AuthService {
         email: existsToken.email,
         duration,
       });
+
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } =
+        this.tokensService.generateTokens(existsUser.id, existsUser.role);
+
+      // Update refresh token in database
+      await this.userRepository.updateEntity(
+        { id: existsUser.id },
+        { refreshToken: newRefreshToken },
+      );
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error('Account verification failed', error?.stack, {
@@ -422,13 +437,31 @@ export class AuthService {
         );
       }
 
+      const user = await this.userRepository.findOne({
+        where: { email: existsToken.email },
+      });
+
       await this.verificationRepository.deleteEntity(existsToken.id);
 
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } =
+        this.tokensService.generateTokens(user.id, user.role);
+
+      // Update refresh token in database
+      await this.userRepository.updateEntity(
+        { id: user.id },
+        { refreshToken: newRefreshToken },
+      );
       const duration = Date.now() - startTime;
       this.logger.log('One-time sign in verification completed successfully', {
         email: existsToken.email,
         duration,
       });
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error('One-time sign in verification failed', error?.stack, {

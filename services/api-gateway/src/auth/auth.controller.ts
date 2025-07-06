@@ -77,9 +77,11 @@ export class AuthController {
    */
   @Post('verify-account')
   @ApiOperation({ summary: 'Verify Account' })
-  @ApiResponse(verifyAccount.success)
+  @ApiResponse(signIn.success)
   @ApiResponse(verifyAccount.error)
-  async verifyAccount(@Body() dto: TokenDto): Promise<BasicReturnType<null>> {
+  async verifyAccount(
+    @Body() dto: TokenDto,
+  ): Promise<BasicReturnType<signInReturn>> {
     return this.authService.verifyAccount(dto);
   }
 
@@ -90,7 +92,7 @@ export class AuthController {
    * @param dto TokenDto - Contains the reset password token.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('verify-reset-password-code')
+  @Post('reset-password/verify')
   @ApiOperation({ summary: 'Verify Reset Password Code' })
   @ApiResponse(commonResponses.success)
   @ApiResponse(commonResponses.error)
@@ -124,7 +126,7 @@ export class AuthController {
    * @param dto EmailDto - Contains the user's email address.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('send-reset-password-code')
+  @Post('/reset-password/code')
   @ApiOperation({ summary: 'Send Reset Password Code' })
   @ApiResponse(commonResponses.success)
   @ApiResponse(commonResponses.error)
@@ -141,7 +143,7 @@ export class AuthController {
    * @param data CreatePasswordDTO - Contains the new password and confirmation.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Patch('create-new-password')
+  @Patch('reset-password/create')
   @ApiOperation({ summary: 'Create New Password' })
   @ApiResponse(createPassword.success)
   @ApiResponse(createPassword.error)
@@ -189,13 +191,13 @@ export class AuthController {
    * @param dto EmailDto - Contains the user's email address.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('one-time-signin-code')
+  @Post('one-time-sign-in/code')
   @ApiOperation({ summary: 'Send One-Time Sign-In Code' })
   @ApiResponse(commonResponses.success)
   @ApiResponse(commonResponses.error)
   async sendOneTimeSignInCode(
     @Body() dto: EmailDto,
-  ): Promise<BasicReturnType<null>> {
+  ): Promise<BasicReturnType<signInReturn>> {
     return this.authService.sendOneTimeSignInCode(dto);
   }
 
@@ -206,9 +208,9 @@ export class AuthController {
    * @param dto TokenDto - Contains the one-time sign-in token.
    * @returns BasicReturnType with a response indicating success or validation error.
    */
-  @Post('verify-one-time-signin-code')
+  @Post('one-time-sign-in/verify')
   @ApiOperation({ summary: 'Verify One-Time Sign-In Code' })
-  @ApiResponse(commonResponses.success)
+  @ApiResponse(signIn.success)
   @ApiResponse(commonResponses.error)
   async verifyOneTimeSignInCode(
     @Body() dto: TokenDto,
@@ -244,9 +246,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Logout' })
   @ApiResponse(logout.success)
   @ApiResponse(logout.error)
-  async logout(
-    @Body() data: LogoutDTO,
-  ): Promise<BasicReturnType<null>> {
+  async logout(@Body() data: LogoutDTO): Promise<BasicReturnType<null>> {
     return this.authService.logout(data);
   }
 }

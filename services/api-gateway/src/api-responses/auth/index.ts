@@ -9,8 +9,11 @@ export const verifyAccount = {
       example: {
         success: true,
         status: 200,
-        message: 'Account verified successfully',
-        data: null,
+        message: 'User signed in successfully',
+        data: {
+          refreshToken: 'xxx',
+          accessToken: 'xxx',
+        },
       },
     },
   },
