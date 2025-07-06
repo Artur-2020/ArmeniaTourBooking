@@ -689,4 +689,85 @@ export class AuthService {
       throw error;
     }
   }
+
+  /**
+   * Verify JWT access token and return user information
+   * @param authorization Authorization header containing the JWT token
+   * @returns User information if token is valid
+   */
+  async verifyJwtToken(authorization?: string): Promise<any> {
+    const startTime = Date.now();
+
+    try {
+      this.logger.log('Starting JWT token verification', {
+        authorization: authorization ? '[REDACTED]' : undefined,
+      });
+
+      if (!authorization) {
+        this.logger.error('JWT verification failed - no authorization header', undefined);
+        throw new BadRequestException(
+          changeConstantValue(invalidItem, { item: 'authorization header' }),
+        );
+      }
+
+      // Extract token from "Bearer <token>" format
+      const token = authorization.replace('Bearer ', '');
+      
+      if (!token) {
+        this.logger.error('JWT verification failed - no token provided', undefined);
+        throw new BadRequestException(
+          changeConstantValue(invalidItem, { item: 'token' }),
+        );
+      }
+
+      // Verify the access token
+      const payload = this.tokensService.verifyAccessToken(token);
+
+      // Find user by ID from token payload
+      const user = await this.userRepository.findOneByQuery({
+        id: payload.userId,
+      });
+
+      if (!user) {
+        this.logger.error('JWT verification failed - user not found', undefined, {
+          userId: payload.userId,
+        });
+        throw new BadRequestException(
+          changeConstantValue(invalidItem, { item: 'token' }),
+        );
+      }
+
+      // Check if account is activated
+      if (!user.activatedAt) {
+        this.logger.error('JWT verification failed - account not activated', undefined, {
+          userId: payload.userId,
+        });
+        throw new BadRequestException(accountNotActive);
+      }
+
+      const duration = Date.now() - startTime;
+      this.logger.log('JWT verification completed successfully', {
+        userId: payload.userId,
+        duration,
+      });
+
+      // Return user information without sensitive data
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        activatedAt: user.activatedAt,
+        settings: user.settings,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error('JWT verification failed', error?.stack, {
+        authorization: authorization ? '[REDACTED]' : undefined,
+        duration,
+      });
+      throw error;
+    }
+  }
 }

@@ -8,9 +8,7 @@ import configuration from './config/config';
 import { AllExceptionsFilter } from './exeption-filters/all-exceptions.filter';
 import { GlobalHttpExceptionFilter } from './exeption-filters/http-exception.filter';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { AuthController } from './auth/auth.controller';
-import { AuthService } from './auth/auth.service';
-import { HttpModule } from '@nestjs/axios';
+import { AuthModule } from './auth/auth.module';
 import { AppLogger } from './utils/logger';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
@@ -19,7 +17,6 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
     ConfigModule.forRoot({
       load: [configuration],
     }),
-    HttpModule,
     ClientsModule.registerAsync([
       {
         name: 'BOOKING_SERVICE',
@@ -38,8 +35,9 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
       },
     ]),
     TerminusModule,
+    AuthModule,
   ],
-  controllers: [AppController, HealthController, AuthController],
+  controllers: [AppController, HealthController],
   providers: [
     {
       provide: APP_FILTER,
@@ -54,7 +52,6 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
       useClass: LoggingInterceptor,
     },
     AppLogger,
-    AuthService,
   ],
 })
 export class AppModule {}

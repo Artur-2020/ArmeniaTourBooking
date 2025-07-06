@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { jwtPayload } from '../interfaces/auth';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -67,8 +67,24 @@ export class TokensService {
         secret: this.configService.get<string>('refreshTokenSecret'),
       });
     } catch (error) {
-      throw new Error(
+      throw new BadRequestException(
         changeConstantValue(invalidItem, { item: 'refresh token' }),
+      );
+    }
+  }
+
+  /**
+   * Verify access token and extract payload
+   * @param accessToken
+   */
+  verifyAccessToken(accessToken: string): jwtPayload {
+    try {
+      return this.jwtService.verify(accessToken, {
+        secret: this.configService.get<string>('accessTokenSecret'),
+      });
+    } catch (error) {
+      throw new Error(
+        changeConstantValue(invalidItem, { item: 'access token' }),
       );
     }
   }

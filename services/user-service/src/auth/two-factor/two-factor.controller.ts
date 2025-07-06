@@ -2,12 +2,9 @@ import { Controller, UsePipes, Post, Body } from '@nestjs/common';
 import { TwoFactorService } from './two-factor.service';
 import { BasicReturnType, GetQRCodeReturn } from '../interfaces/auth';
 import { ValidationPipe } from '../../users/pipes/validation.pipe';
-import {
-  VerifyOptDto,
-  ResendVerificationDto,
-  VerifyOneTimeSignInDto,
-} from '../dto';
+import { VerifyOptDto } from '../dto';
 import { SharedService } from '../shared/shared.service';
+import { User, IUserFromHeaders } from '../decorators/request-user-decorator';
 
 @Controller('auth/two-factor')
 @UsePipes(ValidationPipe)
@@ -24,9 +21,10 @@ export class TwoFactorController {
    * @returns BasicReturnType with the generated QR code data.
    */
   @Post('generate-qr-code')
-  async generateQrCode(): Promise<BasicReturnType<GetQRCodeReturn>> {
-    const userId = '36c8be2e-4603-4a96-937d-f9ed1351a44f';
-    const qrCode = await this.twoFactorService.getQrCode(userId);
+  async generateQrCode(
+    @User() user: IUserFromHeaders,
+  ): Promise<BasicReturnType<GetQRCodeReturn>> {
+    const qrCode = await this.twoFactorService.getQrCode(user.id, user.email);
     return { success: true, data: { code: qrCode } };
   }
 

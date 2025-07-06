@@ -64,10 +64,9 @@ export class TwoFactorService {
   /**
    * Get the qr code for the specific user
    * @param userId
+   * @param email
    */
-  async getQrCode(userId: string): Promise<string> {
-    //todo do this with req.user
-
+  async getQrCode(userId: string, email: string): Promise<string> {
     const isTwoFactorEnabled = await this.checkEnabledTwoFactor(userId);
 
     if (!isTwoFactorEnabled)
@@ -77,14 +76,8 @@ export class TwoFactorService {
 
     const { otpauth_url, base32 } = secret;
 
-    // Get user email from user repository
-    const user = await this.userRepository.findOneByQuery({ id: userId });
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-
     await this.updateUserTwoFactor({
-      email: user.email,
+      email: email,
       secret: base32,
     });
     return await this.generateQRCode(otpauth_url);

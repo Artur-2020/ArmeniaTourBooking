@@ -204,6 +204,17 @@ export const verifyOtp = {
 };
 
 export const commonResponses = {
+  unauthorized: {
+    description: 'Unauthorized access',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: false },
+        statusCode: { type: 'number', example: 401 },
+        message: { type: 'string', example: 'Unauthorized access' },
+      },
+    },
+  },
   success: {
     status: 200,
     description: 'Request was successfully processed.',

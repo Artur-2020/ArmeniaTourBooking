@@ -1,5 +1,10 @@
-import { Body, Controller, Post, Patch } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Post, Patch, UseGuards } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import {
   CreatePasswordDTO,
   EmailDto,
@@ -13,6 +18,7 @@ import {
 import {
   BasicReturnType,
   generateQrReturn,
+  IUser,
   signInReturn,
   signUpReturn,
 } from '../interfaces';
@@ -28,6 +34,8 @@ import {
   logout,
 } from '../api-responses/auth';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { User } from './decorators/request-user-decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -161,10 +169,15 @@ export class AuthController {
    */
   @Post('two-factor/generate-qr-code')
   @ApiOperation({ summary: 'Generate QR Code for Two-Factor Authentication' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiResponse(commonResponses.unauthorized)
   @ApiResponse(twoFactorResponses.generateQr.success)
   @ApiResponse(twoFactorResponses.generateQr.error)
-  async generateQrCode(): Promise<BasicReturnType<generateQrReturn>> {
-    return this.authService.generateQrCode();
+  async generateQrCode(
+    @User() user: IUser,
+  ): Promise<BasicReturnType<generateQrReturn>> {
+    return this.authService.generateQrCode(user);
   }
 
   /**

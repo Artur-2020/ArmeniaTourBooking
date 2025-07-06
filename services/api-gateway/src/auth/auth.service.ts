@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
@@ -15,6 +15,7 @@ import {
 import {
   BasicReturnType,
   generateQrReturn,
+  IUser,
   signInReturn,
   signUpReturn,
 } from '../interfaces';
@@ -39,6 +40,7 @@ export class AuthService {
     method: string,
     endpoint: string,
     data?: any,
+    headers?: any,
   ): Promise<T> {
     const startTime = Date.now();
     const url = `${this.usersServiceUrl}${endpoint}`;
@@ -48,10 +50,11 @@ export class AuthService {
         method,
         url,
         data: this.sanitizeData(data),
+        headers: this.sanitizeData(headers),
       });
 
       const response: AxiosResponse<T> = await firstValueFrom(
-        this.httpService[method.toLowerCase()](url, data),
+        this.httpService[method.toLowerCase()](url, data, { headers }),
       );
 
       const duration = Date.now() - startTime;
@@ -209,11 +212,22 @@ export class AuthService {
     }
   }
 
-  async generateQrCode(): Promise<BasicReturnType<generateQrReturn>> {
+  async generateQrCode(
+    user?: IUser | null,
+  ): Promise<BasicReturnType<generateQrReturn>> {
     try {
+      const headers: any = {};
+
+      // If user object is provided, pass it in headers
+      if (user) {
+        headers['X-user'] = JSON.stringify(user);
+      }
+
       return await this.makeServiceCall<BasicReturnType<generateQrReturn>>(
         'POST',
         '/auth/two-factor/generate-qr-code',
+        undefined,
+        headers,
       );
     } catch (error) {
       this.logger.error('GenerateQrCode failed', error?.stack);

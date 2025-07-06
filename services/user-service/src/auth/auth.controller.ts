@@ -1,4 +1,4 @@
-import { Controller, UsePipes, Post, Body } from '@nestjs/common';
+import { Controller, UsePipes, Post, Body, Get, Headers } from '@nestjs/common';
 import { ValidationPipe } from '../users/pipes/validation.pipe';
 import {
   SignInDto,
@@ -95,6 +95,21 @@ export class AuthController {
   ): Promise<BasicReturnType<signInReturn>> {
     const { token } = data;
     const returnData = await this.authService.verifyAccount(token);
+    return { success: true, data: returnData };
+  }
+
+  /**
+   * Verify JWT token and return user information
+   * Verifies a JWT access token and returns user data if valid.
+   *
+   * @param authorization Authorization header containing the JWT token.
+   * @returns BasicReturnType with user information if token is valid.
+   */
+  @Get('verify-jwt')
+  async verifyJwt(
+    @Headers('authorization') authorization?: string,
+  ): Promise<BasicReturnType<any>> {
+    const returnData = await this.authService.verifyJwtToken(authorization);
     return { success: true, data: returnData };
   }
 
