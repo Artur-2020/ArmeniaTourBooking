@@ -26,7 +26,7 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const extractedUser = this.jwtService.verify(token, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: this.configService.get<string>('jwtSecret'),
       });
       request.user = {
         id: extractedUser.userId,
@@ -36,7 +36,7 @@ export class JwtAuthGuard implements CanActivate {
       };
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid  token');
+      throw new UnauthorizedException('Unauthorized');
     }
   }
 }

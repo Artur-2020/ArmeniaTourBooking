@@ -25,7 +25,7 @@ export class TokensService {
   }
 
   /**
-   * Generate access token based on secret from env
+   * Generate refresh token based on secret from env
    * @param payload
    */
 
