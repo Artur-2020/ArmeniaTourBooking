@@ -97,22 +97,6 @@ export class AuthController {
     const returnData = await this.authService.verifyAccount(token);
     return { success: true, data: returnData };
   }
-
-  /**
-   * Verify JWT token and return user information
-   * Verifies a JWT access token and returns user data if valid.
-   *
-   * @param authorization Authorization header containing the JWT token.
-   * @returns BasicReturnType with user information if token is valid.
-   */
-  @Get('verify-jwt')
-  async verifyJwt(
-    @Headers('authorization') authorization?: string,
-  ): Promise<BasicReturnType<any>> {
-    const returnData = await this.authService.verifyJwtToken(authorization);
-    return { success: true, data: returnData };
-  }
-
   /**
    * Send one-time sign-in code
    * Sends a one-time sign-in code to the user's email for authentication.

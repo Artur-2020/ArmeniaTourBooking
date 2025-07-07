@@ -3,6 +3,8 @@ import { User } from '../../users/entities';
 export interface jwtPayload {
   userId: string;
   role: string;
+  email: string;
+  activatedAt: string | null | undefined | Date;
 }
 export interface signUpReturn extends signInReturn {
   user: User;
@@ -40,4 +42,10 @@ export interface ResendCodeDTO {
 
 export interface GetQRCodeReturn {
   code: string;
+}
+export interface IUserFromHeaders {
+  id: string;
+  email: string;
+  role: string;
+  activatedAt: string;
 }

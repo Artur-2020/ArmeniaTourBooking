@@ -12,6 +12,7 @@ import {
   SendVerificationData,
   signInReturn,
   signUpReturn,
+  jwtPayload,
 } from './interfaces/auth';
 import { services, validations } from '../constants';
 import changeConstantValue from '../helpers/replaceConstantValue';
@@ -108,10 +109,12 @@ export class AuthService {
         role,
       });
 
-      const { refreshToken, accessToken } = this.tokensService.generateTokens(
-        user.id,
-        role,
-      );
+      const { refreshToken, accessToken } = await this.updateUserTokens({
+        userId: user.id,
+        role: user.role,
+        email: user.email,
+        activatedAt: user.activatedAt,
+      });
 
       await this.userSettingsRepository.createEntity({
         enabledTwoFactor: false,
@@ -186,16 +189,12 @@ export class AuthService {
         throw new BadRequestException(InvalidDataForLogin);
       }
 
-      // Generate new tokens
-      const { accessToken, refreshToken: newRefreshToken } =
-        this.tokensService.generateTokens(userId, role);
-
-      // Update refresh token in database
-      await this.userRepository.updateEntity(
-        { id: userId },
-        { refreshToken: newRefreshToken },
-      );
-
+      const { accessToken, refreshToken } = await this.updateUserTokens({
+        userId,
+        email,
+        role,
+        activatedAt: user.activatedAt,
+      });
       const duration = Date.now() - startTime;
       this.logger.log('User sign in completed successfully', {
         email,
@@ -205,7 +204,7 @@ export class AuthService {
 
       return {
         accessToken,
-        refreshToken: newRefreshToken,
+        refreshToken,
       };
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -358,20 +357,12 @@ export class AuthService {
         duration,
       });
 
-      // Generate new tokens
-      const { accessToken, refreshToken: newRefreshToken } =
-        this.tokensService.generateTokens(existsUser.id, existsUser.role);
-
-      // Update refresh token in database
-      await this.userRepository.updateEntity(
-        { id: existsUser.id },
-        { refreshToken: newRefreshToken },
-      );
-
-      return {
-        accessToken,
-        refreshToken: newRefreshToken,
-      };
+      return await this.updateUserTokens({
+        userId: existsUser.id,
+        email: existsUser.email,
+        role: existsUser.role,
+        activatedAt: existsUser.activatedAt,
+      });
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error('Account verification failed', error?.stack, {
@@ -443,9 +434,13 @@ export class AuthService {
 
       await this.verificationRepository.deleteEntity(existsToken.id);
 
-      // Generate new tokens
       const { accessToken, refreshToken: newRefreshToken } =
-        this.tokensService.generateTokens(user.id, user.role);
+        await this.updateUserTokens({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          activatedAt: user.activatedAt,
+        });
 
       // Update refresh token in database
       await this.userRepository.updateEntity(
@@ -595,20 +590,15 @@ export class AuthService {
         );
         throw new BadRequestException(accountNotActive);
       }
+      this.tokensService.verifyRefreshToken(refreshToken);
 
-      // Generate new tokens
       const { accessToken, refreshToken: newRefreshToken } =
-        this.tokensService.refreshAccessToken(
-          refreshToken,
-          payload.userId,
-          payload.role,
-        );
-
-      // Update the refresh token in database
-      await this.userRepository.updateEntity(
-        { id: payload.userId },
-        { refreshToken: newRefreshToken },
-      );
+        await this.updateUserTokens({
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          activatedAt: user.activatedAt,
+        });
 
       const duration = Date.now() - startTime;
       this.logger.log('Token refresh completed successfully', {
@@ -690,84 +680,20 @@ export class AuthService {
     }
   }
 
-  /**
-   * Verify JWT access token and return user information
-   * @param authorization Authorization header containing the JWT token
-   * @returns User information if token is valid
-   */
-  async verifyJwtToken(authorization?: string): Promise<any> {
-    const startTime = Date.now();
+  async updateUserTokens(payload: jwtPayload): Promise<signInReturn> {
+    // Generate new tokens
+    const { accessToken, refreshToken: newRefreshToken } =
+      this.tokensService.generateTokens(payload);
 
-    try {
-      this.logger.log('Starting JWT token verification', {
-        authorization: authorization ? '[REDACTED]' : undefined,
-      });
+    // Update refresh token in database
+    await this.userRepository.updateEntity(
+      { id: payload.userId },
+      { refreshToken: newRefreshToken },
+    );
 
-      if (!authorization) {
-        this.logger.error('JWT verification failed - no authorization header', undefined);
-        throw new BadRequestException(
-          changeConstantValue(invalidItem, { item: 'authorization header' }),
-        );
-      }
-
-      // Extract token from "Bearer <token>" format
-      const token = authorization.replace('Bearer ', '');
-      
-      if (!token) {
-        this.logger.error('JWT verification failed - no token provided', undefined);
-        throw new BadRequestException(
-          changeConstantValue(invalidItem, { item: 'token' }),
-        );
-      }
-
-      // Verify the access token
-      const payload = this.tokensService.verifyAccessToken(token);
-
-      // Find user by ID from token payload
-      const user = await this.userRepository.findOneByQuery({
-        id: payload.userId,
-      });
-
-      if (!user) {
-        this.logger.error('JWT verification failed - user not found', undefined, {
-          userId: payload.userId,
-        });
-        throw new BadRequestException(
-          changeConstantValue(invalidItem, { item: 'token' }),
-        );
-      }
-
-      // Check if account is activated
-      if (!user.activatedAt) {
-        this.logger.error('JWT verification failed - account not activated', undefined, {
-          userId: payload.userId,
-        });
-        throw new BadRequestException(accountNotActive);
-      }
-
-      const duration = Date.now() - startTime;
-      this.logger.log('JWT verification completed successfully', {
-        userId: payload.userId,
-        duration,
-      });
-
-      // Return user information without sensitive data
-      return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        activatedAt: user.activatedAt,
-        settings: user.settings,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      this.logger.error('JWT verification failed', error?.stack, {
-        authorization: authorization ? '[REDACTED]' : undefined,
-        duration,
-      });
-      throw error;
-    }
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
   }
 }

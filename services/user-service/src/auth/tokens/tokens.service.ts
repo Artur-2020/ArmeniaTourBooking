@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { jwtPayload } from '../interfaces/auth';
+import { jwtPayload, signInReturn } from '../interfaces/auth';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import changeConstantValue from '../../helpers/replaceConstantValue';
@@ -38,21 +38,11 @@ export class TokensService {
 
   /**
    * Generate refresh and access tokens for user including id and role and return
-   * @param userId
-   * @param role
+   * @param payload
    */
-  generateTokens(
-    userId: string,
-    role: string,
-  ): { accessToken: string; refreshToken: string } {
-    const accessToken = this.generateAccessToken({
-      userId,
-      role,
-    });
-    const refreshToken = this.generateRefreshToken({
-      userId,
-      role,
-    });
+  generateTokens(payload: jwtPayload): signInReturn {
+    const accessToken = this.generateAccessToken(payload);
+    const refreshToken = this.generateRefreshToken(payload);
 
     return { accessToken, refreshToken };
   }
@@ -71,48 +61,5 @@ export class TokensService {
         changeConstantValue(invalidItem, { item: 'refresh token' }),
       );
     }
-  }
-
-  /**
-   * Verify access token and extract payload
-   * @param accessToken
-   */
-  verifyAccessToken(accessToken: string): jwtPayload {
-    try {
-      return this.jwtService.verify(accessToken, {
-        secret: this.configService.get<string>('accessTokenSecret'),
-      });
-    } catch (error) {
-      throw new Error(
-        changeConstantValue(invalidItem, { item: 'access token' }),
-      );
-    }
-  }
-
-  /**
-   * Refresh access token using refresh token
-   * @param refreshToken
-   * @param userId
-   * @param role
-   */
-  refreshAccessToken(
-    refreshToken: string,
-    userId: string,
-    role: string,
-  ): { accessToken: string; refreshToken: string } {
-    // Verify the refresh token
-    this.verifyRefreshToken(refreshToken);
-
-    // Generate new tokens
-    const newAccessToken = this.generateAccessToken({
-      userId,
-      role,
-    });
-    const newRefreshToken = this.generateRefreshToken({
-      userId,
-      role,
-    });
-
-    return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 }

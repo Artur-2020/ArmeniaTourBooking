@@ -3,16 +3,13 @@ import { TwoFactorService } from './two-factor.service';
 import { BasicReturnType, GetQRCodeReturn } from '../interfaces/auth';
 import { ValidationPipe } from '../../users/pipes/validation.pipe';
 import { VerifyOptDto } from '../dto';
-import { SharedService } from '../shared/shared.service';
-import { User, IUserFromHeaders } from '../decorators/request-user-decorator';
+import { User } from '../decorators/request-user-decorator';
+import { IUserFromHeaders } from '../interfaces/auth';
 
 @Controller('auth/two-factor')
 @UsePipes(ValidationPipe)
 export class TwoFactorController {
-  constructor(
-    private readonly twoFactorService: TwoFactorService,
-    private readonly sharedService: SharedService,
-  ) {}
+  constructor(private readonly twoFactorService: TwoFactorService) {}
 
   /**
    * Generate Qr code for the user

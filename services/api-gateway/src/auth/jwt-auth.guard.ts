@@ -1,55 +1,42 @@
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
+  Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom } from 'rxjs';
-import { IUser } from '../interfaces';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  private readonly usersServiceUrl: string;
-
   constructor(
-    private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-  ) {
-    this.usersServiceUrl = this.configService.get<string>('usersServiceUrl');
-  }
+    private readonly jwtService: JwtService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
-    if (!authHeader) {
-      throw new UnauthorizedException('No authorization header provided');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('No or invalid Authorization header');
     }
+
+    const token = authHeader.split(' ')[1];
 
     try {
-      // Make HTTP request to user-service to verify the token
-      const response = await firstValueFrom(
-        this.httpService.get(`${this.usersServiceUrl}/auth/verify-jwt`, {
-          headers: {
-            Authorization: authHeader,
-          },
-        }),
-      );
-
-      if (response.data.success && response.data.data) {
-        // Attach user data to request for use in controllers
-        request.user = response.data.data;
-        return true;
-      } else {
-        throw new UnauthorizedException('Invalid token');
-      }
+      const extractedUser = this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+      request.user = {
+        id: extractedUser.userId,
+        email: extractedUser.email,
+        role: extractedUser.role,
+        activatedAt: extractedUser.activatedAt,
+      };
+      return true;
     } catch (error) {
-      if (error.response?.status === 401) {
-        throw new UnauthorizedException('Invalid token');
-      }
-      throw new UnauthorizedException('Token verification failed');
+      throw new UnauthorizedException('Invalid  token');
     }
   }
-} 
+}
