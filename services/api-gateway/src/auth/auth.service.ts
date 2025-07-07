@@ -315,4 +315,13 @@ export class AuthService {
       throw error;
     }
   }
+
+  async getUserById(id: string): Promise<IUser | null> {
+    try {
+      return await this.makeServiceCall<IUser>('GET', `/users/${id}`);
+    } catch (error) {
+      this.logger.error('getUserById failed', error?.stack, { id });
+      return null;
+    }
+  }
 }

@@ -1,8 +1,19 @@
-import { Controller, UsePipes } from '@nestjs/common';
+import { Controller, UsePipes, Get, Param } from '@nestjs/common';
 import { ValidationPipe } from './pipes/validation.pipe';
-@Controller()
+import { UserService } from './users.service';
+
+@Controller('users')
 @UsePipes(ValidationPipe)
 export class UserController {
-  constructor() {}
-  // @MessagePattern({ cmd: 'sign_up' })
+  constructor(private readonly userService: UserService) {}
+
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    const user = await this.userService.findById(id);
+    if (user) {
+      const { password, refreshToken, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    }
+    return null;
+  }
 }

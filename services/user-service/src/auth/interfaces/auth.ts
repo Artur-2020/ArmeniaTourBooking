@@ -45,5 +45,9 @@ export interface IUserFromHeaders {
   id: string;
   email: string;
   role: string;
-  activatedAt: string;
+  activatedAt: Date;
+  refreshToken: string;
+  settings: object;
+  createdAt: Date;
+  updatedAt: Date;
 }

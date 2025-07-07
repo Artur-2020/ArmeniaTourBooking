@@ -19,7 +19,7 @@ export class JwtAuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('No or invalid Authorization header');
+      throw new UnauthorizedException();
     }
 
     const token = authHeader.split(' ')[1];
@@ -30,13 +30,11 @@ export class JwtAuthGuard implements CanActivate {
       });
       request.user = {
         id: extractedUser.userId,
-        email: extractedUser.email,
         role: extractedUser.role,
-        activatedAt: extractedUser.activatedAt,
       };
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Unauthorized');
+      throw new UnauthorizedException();
     }
   }
 }

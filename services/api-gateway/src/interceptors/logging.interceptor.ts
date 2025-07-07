@@ -38,7 +38,7 @@ export class LoggingInterceptor implements NestInterceptor {
         // Log successful response
         this.logger.logHttpRequest(method, url, statusCode, duration, {
           requestId,
-          responseSize: JSON.stringify(data).length,
+          responseSize: JSON.stringify(data)?.length || 0,
         });
       }),
       catchError((error) => {
