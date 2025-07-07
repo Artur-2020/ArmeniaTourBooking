@@ -112,8 +112,6 @@ export class AuthService {
       const { refreshToken, accessToken } = await this.updateUserTokens({
         userId: user.id,
         role: user.role,
-        email: user.email,
-        activatedAt: user.activatedAt,
       });
 
       await this.userSettingsRepository.createEntity({
@@ -191,9 +189,7 @@ export class AuthService {
 
       const { accessToken, refreshToken } = await this.updateUserTokens({
         userId,
-        email,
         role,
-        activatedAt: user.activatedAt,
       });
       const duration = Date.now() - startTime;
       this.logger.log('User sign in completed successfully', {
@@ -359,9 +355,7 @@ export class AuthService {
 
       return await this.updateUserTokens({
         userId: existsUser.id,
-        email: existsUser.email,
         role: existsUser.role,
-        activatedAt: existsUser.activatedAt,
       });
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -437,9 +431,7 @@ export class AuthService {
       const { accessToken, refreshToken: newRefreshToken } =
         await this.updateUserTokens({
           userId: user.id,
-          email: user.email,
           role: user.role,
-          activatedAt: user.activatedAt,
         });
 
       // Update refresh token in database
@@ -595,9 +587,7 @@ export class AuthService {
       const { accessToken, refreshToken: newRefreshToken } =
         await this.updateUserTokens({
           userId: user.id,
-          email: user.email,
           role: user.role,
-          activatedAt: user.activatedAt,
         });
 
       const duration = Date.now() - startTime;

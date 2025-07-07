@@ -3,8 +3,6 @@ import { User } from '../../users/entities';
 export interface jwtPayload {
   userId: string;
   role: string;
-  email: string;
-  activatedAt: string | null | undefined | Date;
 }
 export interface signUpReturn extends signInReturn {
   user: User;
