@@ -31,7 +31,7 @@ open_terminal_down() {
 }
 
 RABBIT_MQ_PATH="./"
-USERS_SERVICE_PATH="./user-service"
+API_SERVICE_PATH="./api-service"
 NOTIFICATIONS_SERVICE_PATH="./notification-service"
 
 echo "Using Docker Compose command: $DOCKER_COMPOSE_CMD"
@@ -47,8 +47,8 @@ while [ ! -f "$LOCK_FILE" ]; do
 done
 echo "RABBIT MQ is ready!"
 
-echo "Starting USERS_SERVICE, NOTIFICATIONS_SERVICE..."
-open_terminal_down "bash -c 'cd $USERS_SERVICE_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
+echo "Starting API_SERVICE, NOTIFICATIONS_SERVICE..."
+open_terminal_down "bash -c 'cd $API_SERVICE_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
 open_terminal_right "bash -c 'cd $NOTIFICATIONS_SERVICE_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
 
 echo "All services have been started."

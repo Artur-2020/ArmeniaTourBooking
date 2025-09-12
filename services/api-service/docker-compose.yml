@@ -1,5 +1,5 @@
 services:
-  user-service:
+  api-service:
     build: .
     volumes:
       - .:/app
@@ -9,21 +9,21 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - RABBITMQ_URL=${RABBITMQ_URL}
     depends_on:
-      - user-db
+      - api-db
     command: sh -c "npm install && npm run start:dev"
     networks:
       - services_microservices-network
 
-  user-db:
+  api-db:
     image: postgres:13
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: user_db
+      POSTGRES_DB: api_db
     ports:
       - "${DB_LOCAL_PORT}:5432"
     volumes:
-      - "./data:/var/lib/postgresql/data"
+      - api_db_data:/var/lib/postgresql/data
     networks:
       - services_microservices-network
 networks:
@@ -31,4 +31,4 @@ networks:
     external: true
 
 volumes:
-  user_db_data:
+  api_db_data:

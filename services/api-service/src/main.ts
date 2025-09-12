@@ -52,9 +52,12 @@ async function bootstrap() {
 
   // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('Armenia Tour Booking - User Service API')
+    .setTitle('Armenia Tour Booking - Main API')
     .setDescription(`
-      User Service API for Armenia Tour Booking Microservices
+      Main API Service for Armenia Tour Booking Platform
+      
+      This is the primary API service that handles all client requests including user management, 
+      authentication, and business logic. It serves as the main entry point for the application.
       
       ## Authentication
       This API uses JWT tokens for authentication. The authentication flow works as follows:
@@ -69,6 +72,14 @@ async function bootstrap() {
       - **Refresh Tokens**: Long-lived (7 days) for token renewal
       - **Token Rotation**: New refresh token generated on each refresh
       - **Secure Storage**: Refresh tokens stored securely in database
+      
+      ## Features
+      - User registration and authentication
+      - Password reset and account verification
+      - Two-factor authentication (2FA)
+      - Role-based access control
+      - Request logging and error handling
+      - Swagger API documentation
     `)
     .setVersion('1.0')
     .addBearerAuth()
@@ -82,8 +93,8 @@ async function bootstrap() {
 
   await app.listen(port);
   
-  logger.log(`User service started successfully on port ${port}`, {
-    service: 'User Service',
+  logger.log(`API service started successfully on port ${port}`, {
+    service: 'API Service',
     port,
     environment: process.env.NODE_ENV || 'development',
   });
