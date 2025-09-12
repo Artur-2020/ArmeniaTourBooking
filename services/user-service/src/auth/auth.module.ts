@@ -16,6 +16,8 @@ import { TwoFactorController } from './two-factor/two-factor.controller';
 import { TwoFactorService } from './two-factor/two-factor.service';
 import { SharedService } from './shared/shared.service';
 import { TokensService } from './tokens/tokens.service';
+import { RolesGuard } from './guards/roles.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -52,12 +54,19 @@ import { TokensService } from './tokens/tokens.service';
     TokensService,
     UserSettingsRepository,
     TwoFactorRepository,
+    JwtAuthGuard,
+    RolesGuard,
   ],
   exports: [
     AuthService,
     TwoFactorService,
     UserSettingsRepository,
     TwoFactorRepository,
+    JwtAuthGuard,
+    RolesGuard,
   ],
 })
 export class AuthModule {}
+
+// providers: [AuthService, JwtAuthGuard, RolesGuard],
+//     exports: [JwtAuthGuard, JwtModule, RolesGuard],

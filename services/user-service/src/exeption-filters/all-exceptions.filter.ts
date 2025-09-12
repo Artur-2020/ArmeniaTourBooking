@@ -4,6 +4,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AppLogger } from '../utils/logger';
@@ -24,7 +25,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      
+
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
@@ -37,13 +38,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = 'Internal server error';
-      
+
       // Log unexpected errors
-      this.logger.error('Unexpected error occurred', exception instanceof Error ? exception.stack : String(exception), {
-        url: request.url,
-        method: request.method,
-        body: request.body,
-      });
+      this.logger.error(
+        'Unexpected error occurred',
+        exception instanceof Error ? exception.stack : String(exception),
+        {
+          url: request.url,
+          method: request.method,
+          body: request.body,
+          requestId: request.headers['x-request-id'],
+        },
+      );
     }
 
     const errorResponse = {
@@ -53,6 +59,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       message,
       errors,
+      requestId: request.headers['x-request-id'],
     };
 
     // Log the error response
@@ -60,8 +67,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       url: request.url,
       method: request.method,
       statusCode: status,
+      requestId: request.headers['x-request-id'],
     });
 
     response.status(status).json(errorResponse);
   }
-} 
+}

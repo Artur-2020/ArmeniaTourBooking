@@ -1,11 +1,14 @@
-import { Controller, UsePipes, Post, Body } from '@nestjs/common';
+import { Controller, UsePipes, Post, Body, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { twoFactorResponses, verifyOtp, commonResponses } from '../../api-responses/dtos/api-response';
 import { TwoFactorService } from './two-factor.service';
 import { BasicReturnType, GetQRCodeReturn } from '../interfaces/auth';
 import { ValidationPipe } from '../../users/pipes/validation.pipe';
 import { VerifyOptDto } from '../dto';
-import { User } from '../decorators/request-user-decorator';
-import { IUserFromHeaders } from '../interfaces/auth';
+import { User, RequestUser } from '../decorators/request-user-decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
+@ApiTags('Auth')
 @Controller('auth/two-factor')
 @UsePipes(ValidationPipe)
 export class TwoFactorController {
@@ -18,8 +21,13 @@ export class TwoFactorController {
    * @returns BasicReturnType with the generated QR code data.
    */
   @Post('generate-qr-code')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Generate QR code for two-factor authentication' })
+  @ApiResponse(twoFactorResponses.generateQr.success)
+  @ApiResponse(twoFactorResponses.generateQr.error)
+  @ApiBearerAuth()
   async generateQrCode(
-    @User() user: IUserFromHeaders,
+    @User() user: RequestUser,
   ): Promise<BasicReturnType<GetQRCodeReturn>> {
     const qrCode = await this.twoFactorService.getQrCode(user.id, user.email);
     return { success: true, data: { code: qrCode } };
@@ -33,6 +41,10 @@ export class TwoFactorController {
    * @returns BasicReturnType with a response indicating whether the OTP was verified.
    */
   @Post('verify-otp')
+  @ApiOperation({ summary: 'Verify OTP for two-factor authentication' })
+  @ApiBody({ type: VerifyOptDto })
+  @ApiResponse(verifyOtp.success)
+  @ApiResponse(verifyOtp.error)
   async verifyOTP(
     @Body() data: VerifyOptDto,
   ): Promise<BasicReturnType<{ verified: boolean }>> {

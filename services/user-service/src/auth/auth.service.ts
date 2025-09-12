@@ -22,7 +22,7 @@ import getTimeMinuteDifference from '../helpers/compareDatesAndGetDiff';
 import { SharedService } from './shared/shared.service';
 import { TokensService } from './tokens/tokens.service';
 import { AppLogger } from '../utils/logger';
-import { ErrorHandler } from '../utils/error-handler';
+import { handleBusinessError } from '../utils/error-handler';
 
 const {
   userExistsByEmail,
@@ -262,9 +262,9 @@ export class AuthService {
           error: error?.message,
         },
       );
-      throw ErrorHandler.handleRpcError(
+      throw handleBusinessError(
         error,
-        'NotificationService',
+        this.logger,
         'send_email',
       );
     }
@@ -520,9 +520,9 @@ export class AuthService {
           error: error?.message,
         },
       );
-      throw ErrorHandler.handleRpcError(
+      throw handleBusinessError(
         error,
-        'NotificationService',
+        this.logger,
         'send_email',
       );
     }

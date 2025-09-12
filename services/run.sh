@@ -31,7 +31,6 @@ open_terminal_down() {
 }
 
 RABBIT_MQ_PATH="./"
-API_GATEWAY_PATH="./api-gateway"
 USERS_SERVICE_PATH="./user-service"
 NOTIFICATIONS_SERVICE_PATH="./notification-service"
 
@@ -48,9 +47,8 @@ while [ ! -f "$LOCK_FILE" ]; do
 done
 echo "RABBIT MQ is ready!"
 
-echo "Starting API_GATEWAY, USERS_SERVICE, and NOTIFICATIONS_SERVICE..."
-open_terminal_down "bash -c 'cd $API_GATEWAY_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
-open_terminal_right "bash -c 'cd $USERS_SERVICE_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
-open_terminal_down "bash -c 'cd $NOTIFICATIONS_SERVICE_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
+echo "Starting USERS_SERVICE, NOTIFICATIONS_SERVICE..."
+open_terminal_down "bash -c 'cd $USERS_SERVICE_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
+open_terminal_right "bash -c 'cd $NOTIFICATIONS_SERVICE_PATH && $DOCKER_COMPOSE_CMD up; exec bash'"
 
 echo "All services have been started."

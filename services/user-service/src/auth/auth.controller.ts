@@ -1,5 +1,8 @@
 import { Controller, UsePipes, Post, Body, Get, Headers } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { ValidationPipe } from '../users/pipes/validation.pipe';
+import { signUp, signIn, refreshToken, logout, verifyAccount, commonResponses, createPassword, verifyOtp } from '../api-responses/dtos/api-response';
+import { Public } from './decorators/public.decorator';
 import {
   SignInDto,
   SignUpDto,
@@ -18,6 +21,7 @@ import { VerificationEntityTypeEnum } from './constants/auth';
 
 const { operationSuccessfully } = services;
 
+@ApiTags('Auth')
 @Controller('auth')
 @UsePipes(ValidationPipe)
 export class AuthController {
@@ -34,6 +38,11 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Post('signup')
+  @Public()
+  @ApiOperation({ summary: 'Register a new user account' })
+  @ApiBody({ type: SignUpDto })
+  @ApiResponse(signUp.success)
+  @ApiResponse(signUp.error)
   async signUp(
     @Body() data: SignUpDto,
   ): Promise<BasicReturnType<signUpReturn>> {
@@ -56,6 +65,11 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Post('signin')
+  @Public()
+  @ApiOperation({ summary: 'Sign in with email and password' })
+  @ApiBody({ type: SignInDto })
+  @ApiResponse(signIn.success)
+  @ApiResponse(signIn.error)
   async signIn(
     @Body() data: SignInDto,
   ): Promise<BasicReturnType<signInReturn>> {
@@ -71,6 +85,11 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Post('resend-verify-account-code')
+  @Public()
+  @ApiOperation({ summary: 'Resend account verification code' })
+  @ApiBody({ type: ResendVerificationDto })
+  @ApiResponse(commonResponses.success)
+  @ApiResponse(commonResponses.error)
   async resendVerificationCode(
     @Body() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -90,6 +109,11 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Post('verify-account')
+  @Public()
+  @ApiOperation({ summary: 'Verify user account with token' })
+  @ApiBody({ type: VerifyAccountDto })
+  @ApiResponse(verifyAccount.success)
+  @ApiResponse(verifyAccount.error)
   async verifyAccount(
     @Body() data: VerifyAccountDto,
   ): Promise<BasicReturnType<signInReturn>> {
@@ -105,6 +129,11 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Post('one-time-sign-in/code')
+  @Public()
+  @ApiOperation({ summary: 'Send one-time sign-in code' })
+  @ApiBody({ type: ResendVerificationDto })
+  @ApiResponse(commonResponses.success)
+  @ApiResponse(commonResponses.error)
   async sendOneTimeSignInCode(
     @Body() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -127,6 +156,11 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating whether the OTP was verified.
    */
   @Post('one-time-sign-in/verify')
+  @Public()
+  @ApiOperation({ summary: 'Verify one-time sign-in code' })
+  @ApiBody({ type: VerifyOneTimeSignInDto })
+  @ApiResponse(signIn.success)
+  @ApiResponse(signIn.error)
   async verifyOneTimeSignIn(
     @Body() data: VerifyOneTimeSignInDto,
   ): Promise<BasicReturnType<signInReturn>> {
@@ -144,6 +178,11 @@ export class AuthController {
    * @returns BasicReturnType with new access and refresh tokens.
    */
   @Post('refresh-token')
+  @Public()
+  @ApiOperation({ summary: 'Refresh access token using refresh token' })
+  @ApiBody({ type: RefreshTokenDto })
+  @ApiResponse(refreshToken.success)
+  @ApiResponse(refreshToken.error)
   async refreshToken(
     @Body() data: RefreshTokenDto,
   ): Promise<BasicReturnType<signInReturn>> {
@@ -159,6 +198,11 @@ export class AuthController {
    * @returns BasicReturnType with a response indicating success.
    */
   @Post('logout')
+  @ApiOperation({ summary: 'Logout user and invalidate refresh token' })
+  @ApiBody({ type: LogoutDto })
+  @ApiResponse(logout.success)
+  @ApiResponse(logout.error)
+  @ApiBearerAuth()
   async logout(@Body() data: LogoutDto): Promise<BasicReturnType<null>> {
     await this.authService.logout(data.refreshToken);
     return { success: true };

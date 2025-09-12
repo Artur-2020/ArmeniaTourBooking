@@ -1,22 +1,22 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { IUserFromHeaders } from '../interfaces/auth';
+
+export interface RequestUser {
+  id: string;
+  role: string;
+  email?: string;
+  iat?: number;
+  exp?: number;
+}
 
 export const User = createParamDecorator(
-  (data: keyof IUserFromHeaders | undefined, ctx: ExecutionContext) => {
+  (data: keyof RequestUser | undefined, ctx: ExecutionContext): RequestUser | any => {
     const request = ctx.switchToHttp().getRequest();
-
-    // Extract user information from headers
-    const user = JSON.parse(request.headers['x-user']);
-    if (!user.id || !user.email) {
+    const user: RequestUser = request.user;
+    
+    if (!user) {
       return null;
     }
-
-    const headersUser: IUserFromHeaders = user;
-
-    if (!headersUser) {
-      return null;
-    }
-
-    return data ? headersUser[data] : headersUser;
+    
+    return data ? user?.[data] : user;
   },
 );

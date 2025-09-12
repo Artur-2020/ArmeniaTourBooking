@@ -2,17 +2,17 @@ import {
   ExceptionFilter,
   Catch,
   ArgumentsHost,
-  HttpException,
+  BadRequestException,
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AppLogger } from '../utils/logger';
 
-@Catch(HttpException)
-export class GlobalHttpExceptionFilter implements ExceptionFilter {
+@Catch(BadRequestException)
+export class ValidationExceptionFilter implements ExceptionFilter {
   private readonly logger = new AppLogger();
 
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: BadRequestException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
@@ -26,10 +26,10 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       message = exceptionResponse;
     } else if (typeof exceptionResponse === 'object') {
       const responseObj = exceptionResponse as any;
-      message = responseObj.message || responseObj.error || 'Bad Request';
+      message = responseObj.message || 'Validation failed';
       errors = responseObj.errors || [];
     } else {
-      message = 'Bad Request';
+      message = 'Validation failed';
     }
 
     const errorResponse = {
@@ -42,12 +42,12 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
       requestId: request.headers['x-request-id'],
     };
 
-    // Log HTTP exceptions
-    this.logger.error(`HTTP Exception: ${status} - ${message}`, undefined, {
+    // Log validation errors
+    this.logger.error(`Validation Error: ${status} - ${message}`, undefined, {
       url: request.url,
       method: request.method,
       statusCode: status,
-      body: request.body,
+      validationErrors: errors,
       requestId: request.headers['x-request-id'],
     });
 

@@ -1,4 +1,7 @@
 import { Controller, Post, Body, Patch } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { createPassword, commonResponses } from '../../api-responses/dtos/api-response';
+import { Public } from '../decorators/public.decorator';
 import {
   CreateNewPasswordDto,
   ResendVerificationDto,
@@ -8,6 +11,7 @@ import { BasicReturnType } from '../interfaces/auth';
 import { ResetPasswordService } from './reset-password.service';
 import { SharedService } from '../shared/shared.service';
 
+@ApiTags('Auth')
 @Controller('auth/reset-password')
 export class ResetPasswordController {
   constructor(
@@ -23,6 +27,11 @@ export class ResetPasswordController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Post('code')
+  @Public()
+  @ApiOperation({ summary: 'Send password reset code' })
+  @ApiBody({ type: ResendVerificationDto })
+  @ApiResponse(commonResponses.success)
+  @ApiResponse(commonResponses.error)
   async sendForgetPasswordCode(
     @Body() data: ResendVerificationDto,
   ): Promise<BasicReturnType<null>> {
@@ -42,6 +51,11 @@ export class ResetPasswordController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Post('verify')
+  @Public()
+  @ApiOperation({ summary: 'Verify password reset code' })
+  @ApiBody({ type: VerifyAccountDto })
+  @ApiResponse(commonResponses.success)
+  @ApiResponse(commonResponses.error)
   async verifyResetPasswordCode(
     @Body() data: VerifyAccountDto,
   ): Promise<BasicReturnType<null>> {
@@ -58,6 +72,11 @@ export class ResetPasswordController {
    * @returns BasicReturnType with a response indicating success or validation error.
    */
   @Patch('create')
+  @Public()
+  @ApiOperation({ summary: 'Create new password after verification' })
+  @ApiBody({ type: CreateNewPasswordDto })
+  @ApiResponse(createPassword.success)
+  @ApiResponse(createPassword.error)
   async createNewPassword(
     @Body() data: CreateNewPasswordDto,
   ): Promise<BasicReturnType<null>> {
